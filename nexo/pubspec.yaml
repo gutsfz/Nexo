@@ -27,7 +27,7 @@ dependencies:
 
   # Code generation
   freezed_annotation: ^3.1.0
-  json_annotation: ^4.8.1
+  json_annotation: ^4.9.0
 
   # UI
   google_fonts: ^8.1.0
