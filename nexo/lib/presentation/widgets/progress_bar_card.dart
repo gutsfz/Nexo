@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nexo/core/theme/app_theme.dart';
 
-// barra de progresso diário - completados / total
+// card que mostra o progresso diário na home
 class ProgressBarCard extends StatelessWidget {
   final int completed;
   final int total;
@@ -16,6 +16,7 @@ class ProgressBarCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final progress = total == 0 ? 0.0 : completed / total;
     final percent = (progress * 100).round();
+    final onSurface = Theme.of(context).colorScheme.onSurface;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -27,7 +28,7 @@ class ProgressBarCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Progresso diário'),
+                Text('Progresso diário', style: TextStyle(color: onSurface)),
                 Text('$percent%',
                     style: TextStyle(
                         color: primaryColor, fontWeight: FontWeight.bold)),
@@ -39,13 +40,14 @@ class ProgressBarCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 8,
-                backgroundColor: Colors.grey.withValues(alpha: 0.2),
+                backgroundColor: onSurface.withValues(alpha: 0.15),
                 valueColor: AlwaysStoppedAnimation(primaryColor),
               ),
             ),
             const SizedBox(height: 8),
             Text('$completed de $total hábitos concluídos',
-                style: Theme.of(context).textTheme.bodySmall),
+                style: TextStyle(
+                    fontSize: 12, color: onSurface.withValues(alpha: 0.7))),
           ],
         ),
       ),

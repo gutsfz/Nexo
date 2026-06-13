@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // cores do app
-const primaryColor = Color(0xFF00C896);
+const primaryColor = Color(0xFF7C3AED); // roxo nexo
 const darkBackground = Color(0xFF0D0D0D);
 const darkSurface = Color(0xFF1A1A1A);
 const darkCard = Color(0xFF242424);
@@ -64,7 +64,7 @@ ThemeData createLightTheme() {
       onSurface: Colors.black,
     ),
     textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
-    cardTheme: const CardThemeData(color: darkCard, elevation: 0),
+    cardTheme: const CardThemeData(color: Colors.white, elevation: 0),
     appBarTheme: const AppBarTheme(
       backgroundColor: Color(0xFFF5F5F5),
       elevation: 0,

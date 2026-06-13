@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:nexo/core/theme/app_theme.dart';
 
 // card de um hábito na lista da home
-// recebe dados prontos - não conhece banco nem provider
 class HabitCard extends StatelessWidget {
   final String emoji;
   final String name;
   final String category;
   final int streak;
   final bool isCompleted;
-  final List<bool> weekStatus; // 7 posições — seg a dom
+  final List<bool> weekStatus;
   final VoidCallback onToggle;
   final VoidCallback onTap;
 
@@ -29,6 +28,8 @@ class HabitCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+
     return GestureDetector(
       onTap: onTap,
       child: Card(
@@ -37,7 +38,6 @@ class HabitCard extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              // emoji do hábito
               Container(
                 width: 48,
                 height: 48,
@@ -49,8 +49,6 @@ class HabitCard extends StatelessWidget {
                 child: Text(emoji, style: const TextStyle(fontSize: 24)),
               ),
               const SizedBox(width: 12),
-
-              // nome, categoria e dias da semana
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,9 +60,11 @@ class HabitCard extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         )),
                     Text(name,
-                        style: Theme.of(context).textTheme.titleMedium),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(color: onSurface)),
                     const SizedBox(height: 6),
-                    // mini indicador dos dias da semana
                     Row(
                       children: List.generate(7, (i) {
                         return Padding(
@@ -78,12 +78,14 @@ class HabitCard extends StatelessWidget {
                                   shape: BoxShape.circle,
                                   color: weekStatus[i]
                                       ? primaryColor
-                                      : Colors.grey.withValues(alpha: 0.3),
+                                      : onSurface.withValues(alpha: 0.2),
                                 ),
                               ),
                               const SizedBox(height: 2),
                               Text(_weekLabels[i],
-                                  style: const TextStyle(fontSize: 9)),
+                                  style: TextStyle(
+                                      fontSize: 9,
+                                      color: onSurface.withValues(alpha: 0.6))),
                             ],
                           ),
                         );
@@ -92,20 +94,16 @@ class HabitCard extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // streak (sequência de dias)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Row(
                   children: [
                     const Icon(Icons.local_fire_department,
                         color: Colors.orange, size: 18),
-                    Text(' $streak'),
+                    Text(' $streak', style: TextStyle(color: onSurface)),
                   ],
                 ),
               ),
-
-              // checkbox de conclusão
               GestureDetector(
                 onTap: onToggle,
                 child: Container(
@@ -113,16 +111,16 @@ class HabitCard extends StatelessWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isCompleted
-                        ? primaryColor
-                        : Colors.transparent,
+                    color: isCompleted ? primaryColor : Colors.transparent,
                     border: Border.all(
-                      color: isCompleted ? primaryColor : Colors.grey,
+                      color: isCompleted
+                          ? primaryColor
+                          : onSurface.withValues(alpha: 0.4),
                       width: 2,
                     ),
                   ),
                   child: isCompleted
-                      ? const Icon(Icons.check, color: Colors.black)
+                      ? const Icon(Icons.check, color: Colors.white)
                       : null,
                 ),
               ),

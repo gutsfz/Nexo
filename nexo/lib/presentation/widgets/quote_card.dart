@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nexo/core/theme/app_theme.dart';
 
-// card com a citação do dia
+// card que mostra a citação do dia na home
 class QuoteCard extends StatelessWidget {
   final String content;
   final String author;
@@ -16,6 +16,8 @@ class QuoteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Padding(
@@ -30,18 +32,24 @@ class QuoteCard extends StatelessWidget {
                     style: TextStyle(color: primaryColor, fontSize: 12)),
                 GestureDetector(
                   onTap: onRefresh,
-                  child: const Icon(Icons.refresh, size: 18),
+                  child: Icon(Icons.refresh, size: 18, color: onSurface),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text('"$content"',
-                style: Theme.of(context).textTheme.bodyLarge),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyLarge
+                    ?.copyWith(color: onSurface)),
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerRight,
               child: Text('— $author',
-                  style: Theme.of(context).textTheme.bodySmall),
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: onSurface.withValues(alpha: 0.7))),
             ),
           ],
         ),
