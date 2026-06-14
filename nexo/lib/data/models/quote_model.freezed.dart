@@ -15,8 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$QuoteModel {
 
-@JsonKey(name: '_id') String get id; String get content;// texto da citação
- String get author;
+@JsonKey(name: '_id') String get id; String get content; String get author;
 /// Create a copy of QuoteModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -217,7 +216,6 @@ class _QuoteModel implements QuoteModel {
 
 @override@JsonKey(name: '_id') final  String id;
 @override final  String content;
-// texto da citação
 @override final  String author;
 
 /// Create a copy of QuoteModel
