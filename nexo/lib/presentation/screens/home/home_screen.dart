@@ -1,80 +1,69 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nexo/domain/entities/completion.dart';
+import 'package:nexo/domain/entities/habit.dart';
+import 'package:nexo/presentation/providers/completion_providers.dart';
+import 'package:nexo/presentation/providers/habit_providers.dart';
+import 'package:nexo/presentation/providers/quote_providers.dart';
+import 'package:nexo/presentation/providers/repository_providers.dart';
 import 'package:nexo/presentation/router/app_router.dart';
 import 'package:nexo/presentation/widgets/habit_card.dart';
 import 'package:nexo/presentation/widgets/progress_bar_card.dart';
 import 'package:nexo/presentation/widgets/quote_card.dart';
 
-// tela inicial — lista de hábitos do dia
-// por enquanto com dados mockados, depois troca pelos providers
-class HomeScreen extends StatefulWidget {
+// tela inicial — lista de hábitos do dia, conectada aos providers reais
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
+  // calcula a streak (dias consecutivos concluídos) terminando hoje ou ontem
+  int _calculateStreak(Habit habit, List<Completion> completions) {
+    final habitCompletions =
+        completions.where((c) => c.habitId == habit.id).toList();
 
-class _HomeScreenState extends State<HomeScreen> {
-  // mock de hábitos — virá do provider depois
-  final List<Map<String, dynamic>> _habits = [
-    {
-      'id': 1,
-      'emoji': '🧘',
-      'name': 'Vacuum Matinal',
-      'category': 'Mindfulness',
-      'streak': 14,
-      'isCompleted': true,
-      'week': [true, true, false, true, true, true, true],
-    },
-    {
-      'id': 2,
-      'emoji': '📖',
-      'name': 'Leitura 30 minutos',
-      'category': 'Aprendizado',
-      'streak': 7,
-      'isCompleted': false,
-      'week': [true, false, true, true, false, true, false],
-    },
-    {
-      'id': 3,
-      'emoji': '🏃',
-      'name': 'Corrida 5km',
-      'category': 'Fitness',
-      'streak': 21,
-      'isCompleted': true,
-      'week': [true, true, true, false, true, false, true],
-    },
-    {
-      'id': 4,
-      'emoji': '💧',
-      'name': 'Beber 2L de água',
-      'category': 'Saúde',
-      'streak': 5,
-      'isCompleted': false,
-      'week': [true, true, true, true, false, false, true],
-    },
-  ];
+    int streak = 0;
+    var day = DateTime.now();
 
-  // mock da citação do dia
-  final String _quoteContent =
-      'Minha misericórdia prevalece sobre minha Ira.';
-  final String _quoteAuthor = 'Rick Grimes';
+    // se hoje não foi concluído mas está agendado, começa a contar de ontem
+    final completedToday = habitCompletions.any((c) => c.isSameDay(day));
+    if (!completedToday && habit.isScheduledFor(day)) {
+      day = day.subtract(const Duration(days: 1));
+    }
 
-  void _toggleHabit(int index) {
-    setState(() {
-      _habits[index]['isCompleted'] = !_habits[index]['isCompleted'];
+    while (true) {
+      if (habit.isScheduledFor(day)) {
+        final done = habitCompletions.any((c) => c.isSameDay(day));
+        if (!done) break;
+        streak++;
+      }
+      day = day.subtract(const Duration(days: 1));
+      // limite de segurança para não rodar indefinidamente
+      if (DateTime.now().difference(day).inDays > 365) break;
+    }
+
+    return streak;
+  }
+
+  // retorna o status dos últimos 7 dias (seg a dom da semana atual)
+  List<bool> _weekStatus(Habit habit, List<Completion> completions) {
+    final habitCompletions =
+        completions.where((c) => c.habitId == habit.id).toList();
+
+    final now = DateTime.now();
+    // segunda-feira desta semana
+    final monday = now.subtract(Duration(days: now.weekday - 1));
+
+    return List.generate(7, (i) {
+      final day = monday.add(Duration(days: i));
+      return habitCompletions.any((c) => c.isSameDay(day));
     });
   }
 
-  void _refreshQuote() {
-    // por enquanto só um placeholder - vira chamada ao provider
-    setState(() {});
-  }
-
   @override
-  Widget build(BuildContext context) {
-    final completed = _habits.where((h) => h['isCompleted'] == true).length;
-    final total = _habits.length;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final habitsAsync = ref.watch(habitsProvider);
+    final completionsAsync = ref.watch(completionsProvider);
+    final quoteAsync = ref.watch(dailyQuoteProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -94,37 +83,123 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () => context.pushNamed(AppRoutes.addHabit),
         child: const Icon(Icons.add),
       ),
-      body: ListView(
-        padding: const EdgeInsets.only(top: 8, bottom: 24),
-        children: [
-          QuoteCard(
-            content: _quoteContent,
-            author: _quoteAuthor,
-            onRefresh: _refreshQuote,
-          ),
-          ProgressBarCard(completed: completed, total: total),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text('HÁBITOS DE HOJE',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-          ),
-          ...List.generate(_habits.length, (index) {
-            final habit = _habits[index];
-            return HabitCard(
-              emoji: habit['emoji'],
-              name: habit['name'],
-              category: habit['category'],
-              streak: habit['streak'],
-              isCompleted: habit['isCompleted'],
-              weekStatus: List<bool>.from(habit['week']),
-              onToggle: () => _toggleHabit(index),
-              onTap: () => context.pushNamed(
-                AppRoutes.habitDetail,
-                pathParameters: {'id': habit['id'].toString()},
-              ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(habitsProvider);
+          ref.invalidate(completionsProvider);
+        },
+        child: habitsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(child: Text('Erro: $error')),
+          data: (habits) {
+            return completionsAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(child: Text('Erro: $error')),
+              data: (completions) {
+                final now = DateTime.now();
+
+                // hábitos agendados para hoje
+                final todayHabits =
+                    habits.where((h) => h.isScheduledFor(now)).toList();
+
+                final completedCount = todayHabits.where((h) {
+                  return completions.any(
+                      (c) => c.habitId == h.id && c.isSameDay(now));
+                }).length;
+
+                return ListView(
+                  padding: const EdgeInsets.only(top: 8, bottom: 24),
+                  children: [
+                    // citação do dia
+                    quoteAsync.when(
+                      loading: () => const Padding(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        child: Card(
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: SizedBox(
+                              height: 60,
+                              child:
+                                  Center(child: CircularProgressIndicator()),
+                            ),
+                          ),
+                        ),
+                      ),
+                      error: (_, _) => const SizedBox.shrink(),
+                      data: (quote) => QuoteCard(
+                        content: quote.content,
+                        author: quote.author,
+                        onRefresh: () => ref.invalidate(dailyQuoteProvider),
+                      ),
+                    ),
+
+                    // progresso do dia
+                    ProgressBarCard(
+                      completed: completedCount,
+                      total: todayHabits.length,
+                    ),
+
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: Text('HÁBITOS DE HOJE',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 13)),
+                    ),
+
+                    // lista vazia
+                    if (todayHabits.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 32),
+                        child: Center(
+                          child: Text(
+                            'Nenhum hábito para hoje.\nToque em + para criar um novo hábito.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.6)),
+                          ),
+                        ),
+                      ),
+
+                    // lista de hábitos do dia
+                    ...todayHabits.map((habit) {
+                      final isCompleted = completions.any(
+                          (c) => c.habitId == habit.id && c.isSameDay(now));
+                      final streak = _calculateStreak(habit, completions);
+                      final weekStatus = _weekStatus(habit, completions);
+
+                      return HabitCard(
+                        emoji: habit.emoji,
+                        name: habit.name,
+                        category: habit.category,
+                        streak: streak,
+                        isCompleted: isCompleted,
+                        weekStatus: weekStatus,
+                        onToggle: () async {
+                          final repo = ref.read(completionRepositoryProvider);
+                          if (isCompleted) {
+                            await repo.unmarkCompleted(habit.id, now);
+                          } else {
+                            await repo.markCompleted(habit.id, now);
+                          }
+                          ref.invalidate(completionsProvider);
+                        },
+                        onTap: () => context.pushNamed(
+                          AppRoutes.habitDetail,
+                          pathParameters: {'id': habit.id.toString()},
+                        ),
+                      );
+                    }),
+                  ],
+                );
+              },
             );
-          }),
-        ],
+          },
+        ),
       ),
     );
   }

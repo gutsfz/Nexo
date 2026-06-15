@@ -4,7 +4,7 @@ import 'package:nexo/core/theme/app_theme.dart';
 
 // tela de detalhe do hábito
 // recebe o id via parâmetro de rota (go_router)
-// por enquanto com dados mockados — RN-06, RN-07, RN-08 do documento
+// por enquanto com dados mockados - RN-06, RN-07, RN-08 do documento
 class HabitDetailScreen extends StatelessWidget {
   final int habitId;
 
@@ -14,7 +14,7 @@ class HabitDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final onSurface = Theme.of(context).colorScheme.onSurface;
 
-    // mock — depois vem do provider buscando pelo habitId
+    // mock - depois vem do provider buscando pelo habitId
     const emoji = '🧘';
     const name = 'Meditação Matinal';
     const category = 'Mindfulness';
@@ -137,7 +137,7 @@ class HabitDetailScreen extends StatelessWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {
-                    // editar — abre o formulário com dados preenchidos
+                    // editar - abre o formulário com dados preenchidos
                   },
                   child: const Text('Editar'),
                 ),
