@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nexo/core/theme/app_theme.dart';
+import 'package:nexo/domain/entities/completion.dart';
+import 'package:nexo/domain/entities/habit.dart';
+import 'package:nexo/presentation/providers/completion_providers.dart';
+import 'package:nexo/presentation/providers/habit_providers.dart';
 
 const _filterKey = 'history_filter'; // RN-21
 
@@ -11,10 +15,11 @@ enum HistoryPeriod { week, month }
 extension HistoryPeriodLabel on HistoryPeriod {
   String get label =>
       this == HistoryPeriod.week ? 'Últimos 7 dias' : 'Último mês';
+
+  int get days => this == HistoryPeriod.week ? 7 : 30;
 }
 
-// tela de histórico — completions por período (RN-20)
-// dados mockados por enquanto, virá do provider de completions
+// tela de histórico — completions por período (RN-20), conectada aos dados reais
 class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
 
@@ -54,31 +59,42 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     _saveFilter(period);
   }
 
+  // label do dia: "Seg", "Ter", etc para semana; "DD/MM" para mês
+  String _dayLabel(DateTime date, HistoryPeriod period) {
+    if (period == HistoryPeriod.week) {
+      const labels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+      return labels[date.weekday - 1];
+    }
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}';
+  }
+
+  // para cada dia do período, calcula (data, concluídos, agendados)
+  List<(DateTime, int, int)> _buildDailyData(
+    List<Habit> habits,
+    List<Completion> completions,
+  ) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final days = _selectedPeriod.days;
+
+    return List.generate(days, (i) {
+      final date = today.subtract(Duration(days: days - 1 - i));
+
+      final scheduled = habits.where((h) => h.isScheduledFor(date)).toList();
+
+      final completed = scheduled.where((h) {
+        return completions.any((c) => c.habitId == h.id && c.isSameDay(date));
+      }).length;
+
+      return (date, completed, scheduled.length);
+    }).reversed.toList(); // mais recente primeiro
+  }
+
   @override
   Widget build(BuildContext context) {
     final onSurface = Theme.of(context).colorScheme.onSurface;
-
-    // mock de dados — completions por dia
-    // formato: dia da semana, concluídos, total agendado
-    final mockData = _selectedPeriod == HistoryPeriod.week
-        ? [
-            ('Dom', 4, 5),
-            ('Sáb', 5, 5),
-            ('Sex', 3, 5),
-            ('Qui', 2, 5),
-            ('Qua', 5, 5),
-            ('Ter', 3, 5),
-            ('Seg', 4, 5),
-          ]
-        : List.generate(30, (i) => ('Dia ${30 - i}', (i % 5) + 1, 5));
-
-    // RN-23: taxa média = média das taxas diárias
-    final rates = mockData.map((d) => d.$2 / d.$3).toList();
-    final avgRate = (rates.reduce((a, b) => a + b) / rates.length * 100)
-        .round();
-
-    // melhor dia
-    final best = mockData.reduce((a, b) => a.$2 / a.$3 > b.$2 / b.$3 ? a : b);
+    final habitsAsync = ref.watch(habitsProvider);
+    final completionsAsync = ref.watch(completionsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -102,100 +118,154 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // lista de dias com barra de progresso
-          ...mockData.map((day) {
-            final (label, completed, total) = day;
-            final progress = total == 0 ? 0.0 : completed / total;
-
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 48,
+      body: habitsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(child: Text('Erro: $error')),
+        data: (habits) {
+          return completionsAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) => Center(child: Text('Erro: $error')),
+            data: (completions) {
+              if (habits.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
                     child: Text(
-                      label,
-                      style: TextStyle(color: onSurface, fontSize: 13),
+                      'Nenhum hábito criado ainda.\nO histórico aparecerá aqui.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: onSurface.withValues(alpha: 0.6)),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        minHeight: 16,
-                        backgroundColor: onSurface.withValues(alpha: 0.1),
-                        valueColor: AlwaysStoppedAnimation(primaryColor),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 48,
-                    child: Text(
-                      '$completed/$total',
-                      style: TextStyle(
-                        color: onSurface.withValues(alpha: 0.7),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-          const SizedBox(height: 24),
+                );
+              }
 
-          // resumo — taxa média e melhor dia (RN-23)
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+              final dailyData = _buildDailyData(habits, completions);
+
+              // RN-23: taxa média — considera só dias com hábitos agendados
+              final daysWithSchedule = dailyData
+                  .where((d) => d.$3 > 0)
+                  .toList();
+
+              final avgRate = daysWithSchedule.isEmpty
+                  ? 0
+                  : (daysWithSchedule
+                                .map((d) => d.$2 / d.$3)
+                                .reduce((a, b) => a + b) /
+                            daysWithSchedule.length *
+                            100)
+                        .round();
+
+              // melhor dia — maior taxa de conclusão (entre dias com agenda)
+              final best = daysWithSchedule.isEmpty
+                  ? null
+                  : daysWithSchedule.reduce(
+                      (a, b) => (a.$2 / a.$3) >= (b.$2 / b.$3) ? a : b,
+                    );
+
+              return ListView(
+                padding: const EdgeInsets.all(16),
                 children: [
-                  Column(
-                    children: [
-                      Text(
-                        '$avgRate%',
-                        style: TextStyle(
-                          color: primaryColor,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Text('Taxa média'),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      Row(
+                  // lista de dias com barra de progresso
+                  ...dailyData.map((day) {
+                    final (date, completed, total) = day;
+                    final progress = total == 0 ? 0.0 : completed / total;
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
                         children: [
-                          const Icon(
-                            Icons.local_fire_department,
-                            color: Colors.orange,
-                            size: 18,
+                          SizedBox(
+                            width: 48,
+                            child: Text(
+                              _dayLabel(date, _selectedPeriod),
+                              style: TextStyle(color: onSurface, fontSize: 13),
+                            ),
                           ),
-                          Text(
-                            ' ${best.$2}/${best.$3}',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: LinearProgressIndicator(
+                                value: progress,
+                                minHeight: 16,
+                                backgroundColor: onSurface.withValues(
+                                  alpha: 0.1,
+                                ),
+                                valueColor: AlwaysStoppedAnimation(
+                                  primaryColor,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          SizedBox(
+                            width: 48,
+                            child: Text(
+                              '$completed/$total',
+                              style: TextStyle(
+                                color: onSurface.withValues(alpha: 0.7),
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      const Text('Melhor dia'),
-                    ],
+                    );
+                  }),
+                  const SizedBox(height: 24),
+
+                  // resumo — taxa média e melhor dia (RN-23)
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Column(
+                            children: [
+                              Text(
+                                '$avgRate%',
+                                style: TextStyle(
+                                  color: primaryColor,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Text('Taxa média'),
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.local_fire_department,
+                                    color: Colors.orange,
+                                    size: 18,
+                                  ),
+                                  Text(
+                                    best == null
+                                        ? '-'
+                                        : ' ${best.$2}/${best.$3}',
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Text('Melhor dia'),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
-              ),
-            ),
-          ),
-        ],
+              );
+            },
+          );
+        },
       ),
     );
   }
