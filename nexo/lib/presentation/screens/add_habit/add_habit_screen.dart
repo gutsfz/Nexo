@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nexo/core/theme/app_theme.dart';
+import 'package:nexo/domain/entities/habit.dart';
+import 'package:nexo/presentation/providers/habit_providers.dart';
+import 'package:nexo/presentation/providers/repository_providers.dart';
 
-// tela de criar novo hábito
-// por enquanto sem salvar no banco — isso vem quando os repositories
-// estiverem prontos. aqui é só o formulário e validação.
-class AddHabitScreen extends StatefulWidget {
+// tela de criar novo hábito — conectada ao habitRepository
+class AddHabitScreen extends ConsumerStatefulWidget {
   const AddHabitScreen({super.key});
 
   @override
-  State<AddHabitScreen> createState() => _AddHabitScreenState();
+  ConsumerState<AddHabitScreen> createState() => _AddHabitScreenState();
 }
 
-class _AddHabitScreenState extends State<AddHabitScreen> {
+class _AddHabitScreenState extends ConsumerState<AddHabitScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
 
@@ -34,13 +36,16 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
   // mensagem de erro dos dias da semana — null quando não há erro
   String? _weekdaysError;
 
+  // evita duplo clique enquanto salva
+  bool _isSaving = false;
+
   @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
   }
 
-  void _save() {
+  Future<void> _save() async {
     final isFormValid = _formKey.currentState!.validate();
 
     // RN-10: pelo menos 1 dia da semana selecionado
@@ -52,20 +57,41 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
 
     if (!isFormValid || _weekdaysError != null) return;
 
-    final weekdaysString = _selectedWeekdays
+    final weekdays = _selectedWeekdays
         .asMap()
         .entries
         .where((e) => e.value)
         .map((e) => e.key)
-        .join(',');
+        .toList();
 
-    debugPrint('Novo hábito: '
-        'name=${_nameController.text}, '
-        'emoji=$_selectedEmoji, '
-        'category=$_selectedCategory, '
-        'weekdays=$weekdaysString');
+    setState(() => _isSaving = true);
 
-    context.pop();
+    // id é gerado pelo banco (sqlite autoincrement) — usamos 0 como placeholder
+    final habit = Habit(
+      id: 0,
+      name: _nameController.text.trim(),
+      emoji: _selectedEmoji,
+      category: _selectedCategory,
+      weekdays: weekdays,
+      createdAt: DateTime.now(),
+    );
+
+    try {
+      final repository = ref.read(habitRepositoryProvider);
+      await repository.addHabit(habit);
+
+      // recarrega a lista de hábitos da home
+      ref.invalidate(habitsProvider);
+
+      if (mounted) context.pop();
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao salvar hábito: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -170,8 +196,8 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
                     });
                   },
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: isSelected ? primaryColor : Colors.transparent,
                       border: Border.all(
@@ -193,16 +219,16 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
               }),
             ),
             if (_weekdaysError != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                _weekdaysError!,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.error,
-                  fontSize: 12,
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  _weekdaysError!,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontSize: 12,
+                  ),
                 ),
               ),
-            ),
             const SizedBox(height: 32),
 
             // botões
@@ -210,19 +236,26 @@ class _AddHabitScreenState extends State<AddHabitScreen> {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => context.pop(),
+                    onPressed: _isSaving ? null : () => context.pop(),
                     child: const Text('Cancelar'),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: _save,
+                    onPressed: _isSaving ? null : _save,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
                       foregroundColor: Colors.white,
                     ),
-                    child: const Text('Salvar'),
+                    child: _isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text('Salvar'),
                   ),
                 ),
               ],
