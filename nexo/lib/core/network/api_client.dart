@@ -8,9 +8,9 @@ class ApiClient {
   ApiClient._init() {
     dio = Dio(BaseOptions(
       // api pública de citações
-      baseUrl: 'https://api.quotable.io',
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      baseUrl: 'https://zenquotes.io/api',
+      connectTimeout: const Duration(seconds: 5),
+      receiveTimeout: const Duration(seconds: 5),
     ));
   }
 }

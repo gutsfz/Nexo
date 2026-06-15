@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$QuoteModel {
 
-@JsonKey(name: '_id') String get id; String get content; String get author;
+@JsonKey(name: 'q') String get content;@JsonKey(name: 'a') String get author;
 /// Create a copy of QuoteModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $QuoteModelCopyWith<QuoteModel> get copyWith => _$QuoteModelCopyWithImpl<QuoteMo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is QuoteModel&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&(identical(other.author, author) || other.author == author));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is QuoteModel&&(identical(other.content, content) || other.content == content)&&(identical(other.author, author) || other.author == author));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,content,author);
+int get hashCode => Object.hash(runtimeType,content,author);
 
 @override
 String toString() {
-  return 'QuoteModel(id: $id, content: $content, author: $author)';
+  return 'QuoteModel(content: $content, author: $author)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $QuoteModelCopyWith<$Res>  {
   factory $QuoteModelCopyWith(QuoteModel value, $Res Function(QuoteModel) _then) = _$QuoteModelCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: '_id') String id, String content, String author
+@JsonKey(name: 'q') String content,@JsonKey(name: 'a') String author
 });
 
 
@@ -65,10 +65,9 @@ class _$QuoteModelCopyWithImpl<$Res>
 
 /// Create a copy of QuoteModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? content = null,Object? author = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? content = null,Object? author = null,}) {
   return _then(_self.copyWith(
-id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
+content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as String,author: null == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
 as String,
   ));
@@ -155,10 +154,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String content,  String author)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'q')  String content, @JsonKey(name: 'a')  String author)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _QuoteModel() when $default != null:
-return $default(_that.id,_that.content,_that.author);case _:
+return $default(_that.content,_that.author);case _:
   return orElse();
 
 }
@@ -176,10 +175,10 @@ return $default(_that.id,_that.content,_that.author);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String content,  String author)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'q')  String content, @JsonKey(name: 'a')  String author)  $default,) {final _that = this;
 switch (_that) {
 case _QuoteModel():
-return $default(_that.id,_that.content,_that.author);case _:
+return $default(_that.content,_that.author);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -196,10 +195,10 @@ return $default(_that.id,_that.content,_that.author);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: '_id')  String id,  String content,  String author)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'q')  String content, @JsonKey(name: 'a')  String author)?  $default,) {final _that = this;
 switch (_that) {
 case _QuoteModel() when $default != null:
-return $default(_that.id,_that.content,_that.author);case _:
+return $default(_that.content,_that.author);case _:
   return null;
 
 }
@@ -211,12 +210,11 @@ return $default(_that.id,_that.content,_that.author);case _:
 @JsonSerializable()
 
 class _QuoteModel implements QuoteModel {
-  const _QuoteModel({@JsonKey(name: '_id') required this.id, required this.content, required this.author});
+  const _QuoteModel({@JsonKey(name: 'q') required this.content, @JsonKey(name: 'a') required this.author});
   factory _QuoteModel.fromJson(Map<String, dynamic> json) => _$QuoteModelFromJson(json);
 
-@override@JsonKey(name: '_id') final  String id;
-@override final  String content;
-@override final  String author;
+@override@JsonKey(name: 'q') final  String content;
+@override@JsonKey(name: 'a') final  String author;
 
 /// Create a copy of QuoteModel
 /// with the given fields replaced by the non-null parameter values.
@@ -231,16 +229,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _QuoteModel&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&(identical(other.author, author) || other.author == author));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _QuoteModel&&(identical(other.content, content) || other.content == content)&&(identical(other.author, author) || other.author == author));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,content,author);
+int get hashCode => Object.hash(runtimeType,content,author);
 
 @override
 String toString() {
-  return 'QuoteModel(id: $id, content: $content, author: $author)';
+  return 'QuoteModel(content: $content, author: $author)';
 }
 
 
@@ -251,7 +249,7 @@ abstract mixin class _$QuoteModelCopyWith<$Res> implements $QuoteModelCopyWith<$
   factory _$QuoteModelCopyWith(_QuoteModel value, $Res Function(_QuoteModel) _then) = __$QuoteModelCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: '_id') String id, String content, String author
+@JsonKey(name: 'q') String content,@JsonKey(name: 'a') String author
 });
 
 
@@ -268,10 +266,9 @@ class __$QuoteModelCopyWithImpl<$Res>
 
 /// Create a copy of QuoteModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? content = null,Object? author = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? content = null,Object? author = null,}) {
   return _then(_QuoteModel(
-id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
+content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as String,author: null == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
 as String,
   ));

@@ -130,7 +130,11 @@ class HomeScreen extends ConsumerWidget {
                       data: (quote) => QuoteCard(
                         content: quote.content,
                         author: quote.author,
-                        onRefresh: () => ref.invalidate(dailyQuoteProvider),
+                        onRefresh: () async {
+                        final repo = ref.read(quoteRepositoryProvider);
+                        await repo.refreshQuote(); // busca nova citação e atualiza o cache
+                        ref.invalidate(dailyQuoteProvider); // recarrega a tela com o novo cache
+                        },
                       ),
                     ),
 
