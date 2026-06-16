@@ -8,7 +8,7 @@ import 'package:nexo/presentation/providers/completion_providers.dart';
 import 'package:nexo/presentation/providers/habit_providers.dart';
 import 'package:nexo/presentation/providers/repository_providers.dart';
 
-// tela de detalhe do hábito - conectada aos dados reais
+// tela de detalhe do hábito — conectada aos dados reais
 // recebe o id via parâmetro de rota (go_router)
 class HabitDetailScreen extends ConsumerWidget {
   final int habitId;
@@ -52,7 +52,7 @@ class HabitDetailScreen extends ConsumerWidget {
     return todayDate.difference(createdAt).inDays + 1;
   }
 
-  // streak - dias consecutivos agendados e concluídos, terminando hoje ou ontem
+  // streak — dias consecutivos agendados e concluídos, terminando hoje ou ontem
   int _calculateStreak(Habit habit, List<Completion> completions) {
     final habitCompletions =
         completions.where((c) => c.habitId == habit.id).toList();
