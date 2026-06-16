@@ -80,7 +80,11 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     return List.generate(days, (i) {
       final date = today.subtract(Duration(days: days - 1 - i));
 
-      final scheduled = habits.where((h) => h.isScheduledFor(date)).toList();
+      final scheduled = habits.where((h) {
+        final createdDay = DateTime(
+            h.createdAt.year, h.createdAt.month, h.createdAt.day);
+        return !date.isBefore(createdDay) && h.isScheduledFor(date);
+      }).toList();
 
       final completed = scheduled.where((h) {
         return completions.any((c) => c.habitId == h.id && c.isSameDay(date));
@@ -165,10 +169,14 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               return ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  // lista de dias com barra de progresso
-                  ...dailyData.map((day) {
-                    final (date, completed, total) = day;
+                  // lista de dias com barra de progresso animada (staggered)
+                  ...dailyData.asMap().entries.map((entry) {
+                    final i = entry.key;
+                    final (date, completed, total) = entry.value;
                     final progress = total == 0 ? 0.0 : completed / total;
+                    final delayMs = i * 30;
+                    final totalDurationMs = 600 + delayMs;
+                    final delayFraction = delayMs / totalDurationMs;
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -183,16 +191,25 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: LinearProgressIndicator(
-                                value: progress,
-                                minHeight: 16,
-                                backgroundColor: onSurface.withValues(
-                                  alpha: 0.1,
-                                ),
-                                valueColor: AlwaysStoppedAnimation(
-                                  primaryColor,
+                            child: TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0.0, end: progress),
+                              duration: Duration(milliseconds: totalDurationMs),
+                              curve: Interval(
+                                delayFraction,
+                                1.0,
+                                curve: Curves.easeInOut,
+                              ),
+                              builder: (context, value, _) => ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: LinearProgressIndicator(
+                                  value: value,
+                                  minHeight: 16,
+                                  backgroundColor: onSurface.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  valueColor: AlwaysStoppedAnimation(
+                                    primaryColor,
+                                  ),
                                 ),
                               ),
                             ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nexo/core/theme/app_theme.dart';
 
 // card de um hábito na lista da home
-class HabitCard extends StatelessWidget {
+class HabitCard extends StatefulWidget {
   final String emoji;
   final String name;
   final String category;
@@ -27,11 +27,44 @@ class HabitCard extends StatelessWidget {
   static const _weekLabels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
   @override
+  State<HabitCard> createState() => _HabitCardState();
+}
+
+class _HabitCardState extends State<HabitCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _scaleController;
+  late final Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _scaleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _scaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.25), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 1.25, end: 1.0), weight: 50),
+    ]).animate(CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _scaleController.dispose();
+    super.dispose();
+  }
+
+  void _handleToggle() {
+    _scaleController.forward(from: 0.0);
+    widget.onToggle();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final onSurface = Theme.of(context).colorScheme.onSurface;
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         child: Padding(
@@ -46,20 +79,20 @@ class HabitCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
-                child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                child: Text(widget.emoji, style: const TextStyle(fontSize: 24)),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(category.toUpperCase(),
+                    Text(widget.category.toUpperCase(),
                         style: TextStyle(
                           fontSize: 11,
                           color: primaryColor,
                           fontWeight: FontWeight.bold,
                         )),
-                    Text(name,
+                    Text(widget.name,
                         style: Theme.of(context)
                             .textTheme
                             .titleMedium
@@ -76,13 +109,13 @@ class HabitCard extends StatelessWidget {
                                 height: 8,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: weekStatus[i]
+                                  color: widget.weekStatus[i]
                                       ? primaryColor
                                       : onSurface.withValues(alpha: 0.2),
                                 ),
                               ),
                               const SizedBox(height: 2),
-                              Text(_weekLabels[i],
+                              Text(HabitCard._weekLabels[i],
                                   style: TextStyle(
                                       fontSize: 9,
                                       color: onSurface.withValues(alpha: 0.6))),
@@ -100,28 +133,38 @@ class HabitCard extends StatelessWidget {
                   children: [
                     const Icon(Icons.local_fire_department,
                         color: Colors.orange, size: 18),
-                    Text(' $streak', style: TextStyle(color: onSurface)),
+                    Text(' ${widget.streak}', style: TextStyle(color: onSurface)),
                   ],
                 ),
               ),
               GestureDetector(
-                onTap: onToggle,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isCompleted ? primaryColor : Colors.transparent,
-                    border: Border.all(
-                      color: isCompleted
-                          ? primaryColor
-                          : onSurface.withValues(alpha: 0.4),
-                      width: 2,
-                    ),
+                onTap: _handleToggle,
+                child: AnimatedBuilder(
+                  animation: _scaleAnimation,
+                  builder: (context, child) => Transform.scale(
+                    scale: _scaleAnimation.value,
+                    child: child,
                   ),
-                  child: isCompleted
-                      ? const Icon(Icons.check, color: Colors.white)
-                      : null,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: widget.isCompleted
+                          ? primaryColor
+                          : Colors.transparent,
+                      border: Border.all(
+                        color: widget.isCompleted
+                            ? primaryColor
+                            : onSurface.withValues(alpha: 0.4),
+                        width: 2,
+                      ),
+                    ),
+                    child: widget.isCompleted
+                        ? const Icon(Icons.check, color: Colors.white)
+                        : null,
+                  ),
                 ),
               ),
             ],

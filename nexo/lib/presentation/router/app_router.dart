@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nexo/presentation/screens/home/home_screen.dart';
 import 'package:nexo/presentation/screens/add_habit/add_habit_screen.dart';
@@ -14,37 +15,60 @@ class AppRoutes {
   static const settings = 'settings';
 }
 
+Page<void> _fadeSlide(GoRouterState state, Widget child) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 250),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curved =
+          CurvedAnimation(parent: animation, curve: Curves.easeInOut);
+      final slide = Tween<Offset>(
+        begin: const Offset(0, 0.05),
+        end: Offset.zero,
+      ).animate(curved);
+      return FadeTransition(
+        opacity: curved,
+        child: SlideTransition(position: slide, child: child),
+      );
+    },
+  );
+}
+
 final appRouter = GoRouter(
   initialLocation: '/',
   routes: [
     GoRoute(
       path: '/',
       name: AppRoutes.home,
-      builder: (context, state) => const HomeScreen(),
+      pageBuilder: (context, state) => _fadeSlide(state, const HomeScreen()),
     ),
     GoRoute(
       path: '/add-habit',
       name: AppRoutes.addHabit,
-      builder: (context, state) => const AddHabitScreen(),
+      pageBuilder: (context, state) =>
+          _fadeSlide(state, const AddHabitScreen()),
     ),
     // parâmetro de rota: /habit/:id
     GoRoute(
       path: '/habit/:id',
       name: AppRoutes.habitDetail,
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final id = int.parse(state.pathParameters['id']!);
-        return HabitDetailScreen(habitId: id);
+        return _fadeSlide(state, HabitDetailScreen(habitId: id));
       },
     ),
     GoRoute(
       path: '/history',
       name: AppRoutes.history,
-      builder: (context, state) => const HistoryScreen(),
+      pageBuilder: (context, state) =>
+          _fadeSlide(state, const HistoryScreen()),
     ),
     GoRoute(
       path: '/settings',
       name: AppRoutes.settings,
-      builder: (context, state) => const SettingsScreen(),
+      pageBuilder: (context, state) =>
+          _fadeSlide(state, const SettingsScreen()),
     ),
   ],
 );
