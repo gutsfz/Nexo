@@ -9,9 +9,11 @@ import 'package:nexo/presentation/screens/habit_detail/habit_detail_screen.dart'
 import 'package:nexo/presentation/screens/history/history_screen.dart';
 import 'package:nexo/presentation/screens/settings/settings_screen.dart';
 import 'package:nexo/presentation/screens/about/about_screen.dart';
+import 'package:nexo/presentation/screens/splash/splash_screen.dart';
 
 // rotas nomeadas - facilita navegar sem decorar paths
 class AppRoutes {
+  static const splash = 'splash';
   static const home = 'home';
   static const addHabit = 'add-habit';
   static const habitDetail = 'habit-detail';
@@ -43,8 +45,13 @@ Page<void> _fadeSlide(GoRouterState state, Widget child) {
 }
 
 final appRouter = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/splash',
   routes: [
+    GoRoute(
+      path: '/splash',
+      name: AppRoutes.splash,
+      pageBuilder: (context, state) => _fadeSlide(state, const SplashScreen()),
+    ),
     GoRoute(
       path: '/',
       name: AppRoutes.home,
