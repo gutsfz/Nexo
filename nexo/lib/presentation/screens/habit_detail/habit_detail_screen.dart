@@ -7,6 +7,7 @@ import 'package:nexo/domain/entities/habit.dart';
 import 'package:nexo/presentation/providers/completion_providers.dart';
 import 'package:nexo/presentation/providers/habit_providers.dart';
 import 'package:nexo/presentation/providers/repository_providers.dart';
+import 'package:nexo/presentation/router/app_router.dart';
 
 // tela de detalhe do hábito — conectada aos dados reais
 // recebe o id via parâmetro de rota (go_router)
@@ -92,19 +93,23 @@ class HabitDetailScreen extends ConsumerWidget {
     });
   }
 
-  // heatmap dos últimos 30 dias — intensidade 0 (não feito) ou 1 (feito)
-  // só considera dias em que o hábito estava agendado
-  List<int> _heatmap(Habit habit, List<Completion> completions) {
+  // heatmap — 35 dias (5 semanas completas, Seg–Dom) começando 4 semanas atrás
+  // status: -2=futuro, -1=não agendado, 0=pendente, 1=feito
+  // armazenado em col-major: índice = col*7 + row (row 0=Seg … 6=Dom)
+  List<(DateTime, int)> _heatmapData(Habit habit, List<Completion> completions) {
     final habitCompletions =
         completions.where((c) => c.habitId == habit.id).toList();
+    final now = DateTime.now();
+    final todayDate = DateTime(now.year, now.month, now.day);
+    final startMonday =
+        todayDate.subtract(Duration(days: todayDate.weekday - 1 + 28));
 
-    final today = DateTime.now();
-
-    return List.generate(30, (i) {
-      final day = today.subtract(Duration(days: 29 - i));
-      if (!habit.isScheduledFor(day)) return -1; // não agendado
+    return List.generate(35, (i) {
+      final day = startMonday.add(Duration(days: i));
+      if (day.isAfter(todayDate)) return (day, -2);
+      if (!habit.isScheduledFor(day)) return (day, -1);
       final done = habitCompletions.any((c) => c.isSameDay(day));
-      return done ? 1 : 0;
+      return (day, done ? 1 : 0);
     });
   }
 
@@ -134,7 +139,7 @@ class HabitDetailScreen extends ConsumerWidget {
               final completionRate = _completionRate(habit, completions);
               final totalDays = _totalDays(habit);
               final weekStatus = _weekStatus(habit, completions);
-              final heatmap = _heatmap(habit, completions);
+              final heatmap = _heatmapData(habit, completions);
               const weekLabels = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'];
 
               return ListView(
@@ -222,33 +227,12 @@ class HabitDetailScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // heatmap dos últimos 30 dias
-                  const Text('ÚLTIMOS 30 DIAS',
+                  // heatmap — 5 semanas em grade calendário
+                  const Text('ÚLTIMAS 5 SEMANAS',
                       style:
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                   const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 4,
-                    runSpacing: 4,
-                    children: heatmap.map((status) {
-                      Color color;
-                      if (status == -1) {
-                        color = onSurface.withValues(alpha: 0.04); // não agendado
-                      } else if (status == 1) {
-                        color = primaryColor; // concluído
-                      } else {
-                        color = onSurface.withValues(alpha: 0.12); // não concluído
-                      }
-                      return Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: color,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      );
-                    }).toList(),
-                  ),
+                  _HeatmapGrid(data: heatmap),
                   const SizedBox(height: 32),
 
                   // botões de ação
@@ -256,9 +240,10 @@ class HabitDetailScreen extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: OutlinedButton(
-                          onPressed: () {
-                            // edição será implementada depois, se houver tempo
-                          },
+                          onPressed: () => context.pushNamed(
+                            AppRoutes.editHabit,
+                            pathParameters: {'id': habit.id.toString()},
+                          ),
                           child: const Text('Editar'),
                         ),
                       ),
@@ -354,6 +339,166 @@ class _StatBox extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// grade 5 semanas × 7 dias (col-major: data[col*7+row], row 0=Seg … 6=Dom)
+class _HeatmapGrid extends StatelessWidget {
+  final List<(DateTime, int)> data;
+
+  const _HeatmapGrid({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    const dayLabels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+    const monthNames = [
+      'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+      'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
+    ];
+    const cellSize = 28.0;
+    const gap = 4.0;
+    const labelW = 32.0;
+
+    final now = DateTime.now();
+    final todayDate = DateTime(now.year, now.month, now.day);
+
+    // label de mês: col 0 sempre exibe; col 1–4 exibe quando o dia 1 cai na coluna
+    final monthLabels = List<String?>.filled(5, null);
+    final (firstDate, _) = data[0];
+    monthLabels[0] = monthNames[firstDate.month - 1];
+    for (int col = 1; col < 5; col++) {
+      for (int row = 0; row < 7; row++) {
+        final (date, _) = data[col * 7 + row];
+        if (date.day == 1) {
+          monthLabels[col] = monthNames[date.month - 1];
+          break;
+        }
+      }
+    }
+
+    Color cellColor(int status) => switch (status) {
+          -2 => Colors.transparent,
+          -1 => onSurface.withValues(alpha: 0.06),
+          0  => onSurface.withValues(alpha: 0.15),
+          _  => primaryColor,
+        };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // linha de meses
+        Row(
+          children: [
+            const SizedBox(width: labelW + gap),
+            ...List.generate(5, (col) => Padding(
+              padding: EdgeInsets.only(right: col < 4 ? gap : 0),
+              child: SizedBox(
+                width: cellSize,
+                child: Text(
+                  monthLabels[col] ?? '',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
+                    color: onSurface.withValues(alpha: 0.55),
+                  ),
+                ),
+              ),
+            )),
+          ],
+        ),
+        const SizedBox(height: 6),
+
+        // linhas de dias da semana
+        ...List.generate(7, (row) => Padding(
+          padding: EdgeInsets.only(bottom: row < 6 ? gap : 0),
+          child: Row(
+            children: [
+              SizedBox(
+                width: labelW,
+                child: Text(
+                  dayLabels[row],
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: onSurface.withValues(alpha: 0.5),
+                  ),
+                ),
+              ),
+              ...List.generate(5, (col) {
+                final (date, status) = data[col * 7 + row];
+                final isToday = date == todayDate;
+                return Padding(
+                  padding: EdgeInsets.only(right: col < 4 ? gap : 0),
+                  child: Tooltip(
+                    message:
+                        '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}',
+                    child: Container(
+                      width: cellSize,
+                      height: cellSize,
+                      decoration: BoxDecoration(
+                        color: cellColor(status),
+                        borderRadius: BorderRadius.circular(5),
+                        border: isToday
+                            ? Border.all(color: primaryColor, width: 1.5)
+                            : null,
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        )),
+
+        const SizedBox(height: 10),
+
+        // legenda
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            _LegendItem(color: onSurface.withValues(alpha: 0.06), label: 'Livre'),
+            const SizedBox(width: 10),
+            _LegendItem(color: onSurface.withValues(alpha: 0.15), label: 'Pendente'),
+            const SizedBox(width: 10),
+            _LegendItem(color: primaryColor, label: 'Feito'),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _LegendItem extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _LegendItem({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 11,
+          height: 11,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: onSurface.withValues(alpha: 0.6),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nexo/presentation/providers/habit_providers.dart';
 import 'package:nexo/presentation/screens/home/home_screen.dart';
 import 'package:nexo/presentation/screens/add_habit/add_habit_screen.dart';
+import 'package:nexo/presentation/screens/edit_habit/edit_habit_screen.dart';
 import 'package:nexo/presentation/screens/habit_detail/habit_detail_screen.dart';
 import 'package:nexo/presentation/screens/history/history_screen.dart';
 import 'package:nexo/presentation/screens/settings/settings_screen.dart';
@@ -11,6 +14,7 @@ class AppRoutes {
   static const home = 'home';
   static const addHabit = 'add-habit';
   static const habitDetail = 'habit-detail';
+  static const editHabit = 'edit-habit';
   static const history = 'history';
   static const settings = 'settings';
 }
@@ -56,6 +60,36 @@ final appRouter = GoRouter(
       pageBuilder: (context, state) {
         final id = int.parse(state.pathParameters['id']!);
         return _fadeSlide(state, HabitDetailScreen(habitId: id));
+      },
+    ),
+    GoRoute(
+      path: '/habit/:id/edit',
+      name: AppRoutes.editHabit,
+      pageBuilder: (context, state) {
+        final id = int.parse(state.pathParameters['id']!);
+        return _fadeSlide(
+          state,
+          Consumer(
+            builder: (context, ref, _) {
+              final habitsAsync = ref.watch(habitsProvider);
+              return habitsAsync.when(
+                loading: () => const Scaffold(
+                    body: Center(child: CircularProgressIndicator())),
+                error: (e, _) =>
+                    Scaffold(body: Center(child: Text('Erro: $e'))),
+                data: (habits) {
+                  final habit =
+                      habits.where((h) => h.id == id).firstOrNull;
+                  if (habit == null) {
+                    return const Scaffold(
+                        body: Center(child: Text('Hábito não encontrado.')));
+                  }
+                  return EditHabitScreen(habit: habit);
+                },
+              );
+            },
+          ),
+        );
       },
     ),
     GoRoute(
