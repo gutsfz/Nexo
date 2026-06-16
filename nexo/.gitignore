@@ -43,3 +43,23 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Variáveis de ambiente
+.env
+*.env
+
+# Arquivos gerados pelo build_runner
+# (opcional — alguns times commitam, outros não)
+*.freezed.dart
+*.g.dart
+
+# SQLite local (banco de dados de desenvolvimento)
+*.db
+*.sqlite
+
+# Flutter launcher icons gerados (já estão no android/ios/windows)
+# não precisa ignorar pois fazem parte do build
+
+# Windows specific
+/windows/flutter/generated_plugin_registrant.cc
+/windows/flutter/generated_plugin_registrant.h
