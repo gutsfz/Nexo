@@ -2,6 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nexo/presentation/widgets/habit_card.dart';
 
+// Wrapper com estado para testar alternância visual do HabitCard
+class _ToggleWrapper extends StatefulWidget {
+  const _ToggleWrapper();
+
+  @override
+  State<_ToggleWrapper> createState() => _ToggleWrapperState();
+}
+
+class _ToggleWrapperState extends State<_ToggleWrapper> {
+  bool _isCompleted = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return HabitCard(
+      emoji: '🏃',
+      name: 'Exercício',
+      category: 'Saúde',
+      streak: 3,
+      isCompleted: _isCompleted,
+      weekStatus: List.filled(7, false),
+      onToggle: () => setState(() => _isCompleted = !_isCompleted),
+      onTap: () {},
+    );
+  }
+}
+
 void main() {
   group('HabitCard Widget Tests', () {
     testWidgets('HabitCard renderiza emoji, nome e categoria corretamente',
@@ -95,6 +121,32 @@ void main() {
 
       // Assert - verifica se onTap foi chamado
       expect(tapCalled, true);
+    });
+
+    testWidgets('HabitCard alterna estado visual ao acionar toggle',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(body: _ToggleWrapper()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Estado inicial: não concluído — ícone de check não deve existir
+      expect(find.byIcon(Icons.check), findsNothing);
+
+      // AnimatedContainer é o círculo de toggle — único no HabitCard
+      await tester.tap(find.byType(AnimatedContainer));
+      await tester.pumpAndSettle();
+
+      // Após toggle: ícone de check deve aparecer
+      expect(find.byIcon(Icons.check), findsOneWidget);
+
+      // Toggle novamente: volta ao estado não concluído
+      await tester.tap(find.byType(AnimatedContainer));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.check), findsNothing);
     });
   });
 }
