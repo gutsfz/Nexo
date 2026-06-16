@@ -7,9 +7,6 @@ void main() {
     testWidgets('HabitCard renderiza emoji, nome e categoria corretamente',
         (WidgetTester tester) async {
       // Arrange
-      bool onToggleCalled = false;
-      bool onTapCalled = false;
-
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -20,12 +17,8 @@ void main() {
               streak: 5,
               isCompleted: false,
               weekStatus: [true, true, false, true, true, false, false],
-              onToggle: () {
-                onToggleCalled = true;
-              },
-              onTap: () {
-                onTapCalled = true;
-              },
+              onToggle: () {},
+              onTap: () {},
             ),
           ),
         ),
@@ -75,7 +68,6 @@ void main() {
     testWidgets('HabitCard chama callbacks ao interagir com o card',
         (WidgetTester tester) async {
       // Arrange
-      bool toggleCalled = false;
       bool tapCalled = false;
 
       await tester.pumpWidget(
@@ -88,9 +80,7 @@ void main() {
               streak: 7,
               isCompleted: false,
               weekStatus: [true, false, true, false, true, false, true],
-              onToggle: () {
-                toggleCalled = true;
-              },
+              onToggle: () {},
               onTap: () {
                 tapCalled = true;
               },

@@ -19,6 +19,7 @@ class AppRoutes {
   static const history = 'history';
   static const settings = 'settings';
   static const about = 'about';
+  static const allHabits = 'all-habits';
 }
 
 Page<void> _fadeSlide(GoRouterState state, Widget child) {
@@ -109,7 +110,8 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/about',
       name: AppRoutes.about,
-      pageBuilder: (context, state) => const AboutScreen(),
-    ),
+      pageBuilder: (context, state) =>
+      _fadeSlide(state, const AboutScreen()),
+    ), // GoRoute
   ],
 );

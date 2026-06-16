@@ -7,8 +7,11 @@ part 'quote_model.g.dart';
 // resposta da api: [{"q": "...", "a": "...", "h": "..."}]
 @freezed
 abstract class QuoteModel with _$QuoteModel {
+  // ignore: invalid_annotation_target
   const factory QuoteModel({
+    // ignore: invalid_annotation_target
     @JsonKey(name: 'q') required String content,
+    // ignore: invalid_annotation_target
     @JsonKey(name: 'a') required String author,
   }) = _QuoteModel;
 

@@ -1,6 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+// Widget wrapper que adiciona gradiente roxo sutil no tema escuro
+class GradientBackground extends StatelessWidget {
+  final Widget child;
+
+  const GradientBackground({required this.child, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (!isDark) return child;
+
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: RadialGradient(
+          center: Alignment(-0.8, -0.9),
+          radius: 1.4,
+          colors: [Color(0xFF1C0D42), darkBackground],
+          stops: [0.0, 0.55],
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
 // cores do app
 const primaryColor = Color(0xFF7C3AED); // roxo nexo
 const darkBackground = Color(0xFF0D0D0D);
@@ -10,7 +35,7 @@ const darkCard = Color(0xFF242424);
 ThemeData createDarkTheme() {
   return ThemeData(
     brightness: Brightness.dark,
-    scaffoldBackgroundColor: darkBackground,
+    scaffoldBackgroundColor: Colors.transparent,
     colorScheme: const ColorScheme.dark(
       primary: primaryColor,
       surface: darkSurface,

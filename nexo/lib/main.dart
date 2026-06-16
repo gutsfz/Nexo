@@ -32,6 +32,7 @@ class NexoApp extends ConsumerWidget {
       theme: createLightTheme(),
       darkTheme: createDarkTheme(),
       routerConfig: appRouter,
+      builder: (context, child) => GradientBackground(child: child!),
     );
   }
 }

@@ -11,6 +11,7 @@ class HabitCard extends StatefulWidget {
   final List<bool> weekStatus;
   final VoidCallback onToggle;
   final VoidCallback onTap;
+  final Widget? dragHandle;
 
   const HabitCard({
     required this.emoji,
@@ -21,6 +22,7 @@ class HabitCard extends StatefulWidget {
     required this.weekStatus,
     required this.onToggle,
     required this.onTap,
+    this.dragHandle,
     super.key,
   });
 
@@ -71,6 +73,10 @@ class _HabitCardState extends State<HabitCard>
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
+              if (widget.dragHandle != null) ...[
+                widget.dragHandle!,
+                const SizedBox(width: 4),
+              ],
               Container(
                 width: 48,
                 height: 48,
