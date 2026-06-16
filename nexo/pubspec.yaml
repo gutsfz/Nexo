@@ -7,7 +7,6 @@ environment:
   sdk: '>=3.10.0 <4.0.0'
 
 dependencies:
-  sqflite_common_ffi: ^2.3.0
   flutter:
     sdk: flutter
 
@@ -24,6 +23,7 @@ dependencies:
   # Local storage
   shared_preferences: ^2.2.3
   sqflite: ^2.3.3+1
+  sqflite_common_ffi: ^2.3.0
   path: ^1.9.0
 
   # Code generation
@@ -45,6 +45,21 @@ dev_dependencies:
   riverpod_generator: ^4.0.3
   riverpod_lint: ^3.1.3
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#7C3AED"
+  adaptive_icon_foreground: "assets/images/icon.png"
+  windows:
+    generate: true
+    image_path: "assets/images/icon.png"
+    icon_size: 48
