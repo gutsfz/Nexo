@@ -8,6 +8,7 @@ import 'package:nexo/presentation/screens/edit_habit/edit_habit_screen.dart';
 import 'package:nexo/presentation/screens/habit_detail/habit_detail_screen.dart';
 import 'package:nexo/presentation/screens/history/history_screen.dart';
 import 'package:nexo/presentation/screens/settings/settings_screen.dart';
+import 'package:nexo/presentation/screens/about/about_screen.dart';
 
 // rotas nomeadas - facilita navegar sem decorar paths
 class AppRoutes {
@@ -17,6 +18,7 @@ class AppRoutes {
   static const editHabit = 'edit-habit';
   static const history = 'history';
   static const settings = 'settings';
+  static const about = 'about';
 }
 
 Page<void> _fadeSlide(GoRouterState state, Widget child) {
@@ -103,6 +105,11 @@ final appRouter = GoRouter(
       name: AppRoutes.settings,
       pageBuilder: (context, state) =>
           _fadeSlide(state, const SettingsScreen()),
+    ),
+    GoRoute(
+      path: '/about',
+      name: AppRoutes.about,
+      pageBuilder: (context, state) => const AboutScreen(),
     ),
   ],
 );

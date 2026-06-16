@@ -6,8 +6,6 @@ import 'package:nexo/presentation/providers/habit_providers.dart';
 import 'package:nexo/presentation/providers/completion_providers.dart';
 import 'package:nexo/presentation/providers/quote_providers.dart';
 import 'package:nexo/domain/entities/quote.dart';
-import 'package:nexo/domain/entities/habit.dart';
-import 'package:nexo/domain/entities/completion.dart';
 
 void main() {
   group('HomeScreen Widget Tests', () {

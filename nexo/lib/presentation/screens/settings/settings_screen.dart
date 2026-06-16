@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nexo/presentation/providers/theme_provider.dart';
+import 'package:nexo/presentation/router/app_router.dart';
+import 'package:go_router/go_router.dart';
 
 // tela de configurações com opção de tema escuro e informações sobre o app
 class SettingsScreen extends ConsumerWidget {
@@ -37,6 +39,12 @@ class SettingsScreen extends ConsumerWidget {
           const ListTile(
             title: Text('Versão'),
             subtitle: Text('1.0.0'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: const Text('Sobre o App'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.pushNamed(AppRoutes.about),
           ),
         ],
       ),
