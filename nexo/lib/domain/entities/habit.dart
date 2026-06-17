@@ -16,8 +16,7 @@ class Habit {
     required this.createdAt,
   });
 
-// verifica se o hábito deve ser realizado em um determinado dia
-// weekday do dart: 1 = segunda feira, 7 = domingo
+// weekday do dart: 1 = segunda, 7 = domingo → converte para índice 0-6
   bool isScheduledFor(DateTime date) {
     final index = date.weekday - 1; //converte para índice de 0 a 6
     return weekdays.contains(index);

@@ -3,9 +3,7 @@ import 'package:nexo/data/sources/completion_local_source.dart';
 import 'package:nexo/domain/entities/completion.dart';
 import 'package:nexo/domain/repositories/completion_repository.dart';
 
-// implementação concreta do repositório de conclusões
-// responsável por converter entre CompletionModel (data layer) e Completion (domain layer)
-// e coordenar operações através do CompletionLocalSource
+// converte entre CompletionModel (data layer) e Completion (domain layer)
 class CompletionRepositoryImpl implements CompletionRepository {
   final CompletionLocalSource _completionLocalSource;
 
@@ -35,8 +33,7 @@ class CompletionRepositoryImpl implements CompletionRepository {
     await _completionLocalSource.deleteCompletion(habitId, dateString);
   }
 
-  // converte um modelo de dados CompletionModel para a entidade Completion
-  // transforma a string ISO em DateTime
+  // ISO string → DateTime ao sair do banco
   Completion _modelToCompletion(CompletionModel model) {
     return Completion(
       id: model.id,

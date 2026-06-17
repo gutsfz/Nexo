@@ -199,8 +199,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 }
 
-// ── summary card ────────────────────────────────────────────────────────────
-
 class _SummaryCard extends StatelessWidget {
   final int avgRate;
   final int bestStreak;
@@ -293,8 +291,6 @@ class _MetricItem extends StatelessWidget {
   }
 }
 
-// ── week separator ───────────────────────────────────────────────────────────
-
 class _WeekSeparator extends StatelessWidget {
   final String label;
   final Color onSurface;
@@ -326,8 +322,6 @@ class _WeekSeparator extends StatelessWidget {
     );
   }
 }
-
-// ── daily row ────────────────────────────────────────────────────────────────
 
 class _DayRow extends StatelessWidget {
   final String label;

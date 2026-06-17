@@ -82,13 +82,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const ListTile(
             title: Text('Versão'),
-            subtitle: Text('1.0.0'),
+            subtitle: Text('1.0.1'),
           ),
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('Sobre o App'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.pushNamed(AppRoutes.about),
+          ),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: const Text('Política de Privacidade'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.pushNamed(AppRoutes.privacy),
           ),
           const Divider(),
           const Padding(

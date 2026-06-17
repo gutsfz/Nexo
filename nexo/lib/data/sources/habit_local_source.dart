@@ -6,7 +6,6 @@ import 'package:nexo/data/models/habit_model.dart';
 class HabitLocalSource {
   Future<Database> get _db async => await DatabaseHelper.instance.database;
 
-  // busca todos os hábitos cadastrados
   Future<List<HabitModel>> getHabits() async {
     final db = await _db;
     final maps = await db.query('habits');
@@ -20,7 +19,6 @@ class HabitLocalSource {
     )).toList();
   }
 
-  // insere um novo hábito e retorna o id gerado
   Future<int> insertHabit(HabitModel habit) async {
     final db = await _db;
     return await db.insert('habits', {
@@ -32,7 +30,6 @@ class HabitLocalSource {
     });
   }
 
-  // atualiza um hábito existente
   Future<int> updateHabit(HabitModel habit) async {
     final db = await _db;
     return await db.update(
@@ -48,7 +45,6 @@ class HabitLocalSource {
     );
   }
 
-  // remove um hábito (completions somem em cascade)
   Future<int> deleteHabit(int id) async {
     final db = await _db;
     return await db.delete('habits', where: 'id = ?', whereArgs: [id]);

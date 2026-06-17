@@ -26,8 +26,7 @@ class GradientBackground extends StatelessWidget {
   }
 }
 
-// cores do app
-const primaryColor = Color(0xFF7C3AED); // roxo nexo
+const primaryColor = Color(0xFF7C3AED); // roxo principal
 const darkBackground = Color(0xFF0A0A14);
 const darkSurface = Color(0xFF1A1A1A);
 const darkCard = Color(0xFF242424);
@@ -42,7 +41,6 @@ ThemeData createDarkTheme() {
       onPrimary: Colors.black,
       onSurface: Colors.white,
     ),
-    // fonte inter via google fonts
     textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
     cardTheme: const CardThemeData(color: darkCard, elevation: 0),
     appBarTheme: const AppBarTheme(
@@ -65,7 +63,6 @@ ThemeData createDarkTheme() {
       backgroundColor: primaryColor,
       foregroundColor: Colors.black,
     ),
-    // checkbox dos hábitos
     checkboxTheme: CheckboxThemeData(
       fillColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) return primaryColor;
@@ -77,7 +74,6 @@ ThemeData createDarkTheme() {
   );
 }
 
-// tema claro  salvo via sharedpreferences
 ThemeData createLightTheme() {
   return ThemeData(
     brightness: Brightness.light,

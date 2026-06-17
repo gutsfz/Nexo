@@ -65,7 +65,6 @@ class _AllHabitsScreenState extends ConsumerState<AllHabitsScreen> {
   @override
   Widget build(BuildContext context) {
     final habitsAsync = ref.watch(habitsProvider);
-    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Todos os Hábitos')),
@@ -78,13 +77,8 @@ class _AllHabitsScreenState extends ConsumerState<AllHabitsScreen> {
         error: (error, _) => Center(child: Text('Erro: $error')),
         data: (habits) {
           if (habits.isEmpty) {
-            return Center(
-              child: Text(
-                'Nenhum hábito cadastrado.\nToque em + para criar o primeiro.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    color: colorScheme.onSurface.withValues(alpha: 0.6)),
-              ),
+            return _AllHabitsEmptyState(
+              onCreateHabit: () => context.pushNamed(AppRoutes.addHabit),
             );
           }
 
@@ -231,6 +225,90 @@ class _HabitListTile extends StatelessWidget {
                 Icons.chevron_right,
                 color: onSurface.withValues(alpha: 0.3),
                 size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AllHabitsEmptyState extends StatefulWidget {
+  final VoidCallback onCreateHabit;
+
+  const _AllHabitsEmptyState({required this.onCreateHabit});
+
+  @override
+  State<_AllHabitsEmptyState> createState() => _AllHabitsEmptyStateState();
+}
+
+class _AllHabitsEmptyStateState extends State<_AllHabitsEmptyState>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+
+    return FadeTransition(
+      opacity: _fade,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset('assets/images/icon.png', width: 120, height: 120),
+              const SizedBox(height: 24),
+              Text(
+                'Nenhum hábito para hoje',
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Que tal criar seu primeiro hábito e começar sua jornada?',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: onSurface.withValues(alpha: 0.6),
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: widget.onCreateHabit,
+                icon: const Icon(Icons.add),
+                label: const Text('Criar hábito'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7C3AED),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
               ),
             ],
           ),

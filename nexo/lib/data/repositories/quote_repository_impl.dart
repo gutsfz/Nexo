@@ -4,10 +4,8 @@ import 'package:nexo/data/sources/quote_remote_source.dart';
 import 'package:nexo/domain/entities/quote.dart';
 import 'package:nexo/domain/repositories/quote_repository.dart';
 
-// implementação concreta do repositório de citações
-// usa dois sources: remote (API) para dados frescos, local (cache) para modo offline
-// lógica: se já existe citação de hoje no cache, usa ela direto (sem chamar a api)
-// senão, tenta a api e cai para o cache se falhar
+// cache-first: usa citação de hoje do cache para evitar rate-limit da API;
+// se não houver cache ou a API falhar, retorna fallback hardcoded
 class QuoteRepositoryImpl implements QuoteRepository {
   final QuoteRemoteSource _quoteRemoteSource;
   final QuoteLocalSource _quoteLocalSource;
@@ -28,7 +26,6 @@ class QuoteRepositoryImpl implements QuoteRepository {
 
   @override
   Future<Quote> refreshQuote() async {
-    // refresh manual sempre busca uma nova citação da api
     return _fetchAndCache();
   }
 
@@ -37,8 +34,7 @@ class QuoteRepositoryImpl implements QuoteRepository {
     author: 'Nexo',
   );
 
-  // busca uma nova citação da api e salva no cache
-  // se falhar por qualquer motivo, cai para cache; sem cache, retorna fallback
+  // fallback para cache quando API falha; sem cache, retorna quote padrão
   Future<Quote> _fetchAndCache() async {
     try {
       final model = await _quoteRemoteSource.getRandomQuote()
@@ -54,7 +50,6 @@ class QuoteRepositoryImpl implements QuoteRepository {
     }
   }
 
-  // converte um modelo de dados QuoteModel para a entidade Quote
   Quote _modelToQuote(QuoteModel model) {
     return Quote(
       content: model.content,

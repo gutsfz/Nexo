@@ -3,9 +3,7 @@ import 'package:nexo/data/sources/habit_local_source.dart';
 import 'package:nexo/domain/entities/habit.dart';
 import 'package:nexo/domain/repositories/habit_repository.dart';
 
-// implementação concreta do repositório de hábitos
-// responsável por converter entre HabitModel (data layer) e Habit (domain layer)
-// e coordenar operações através do HabitLocalSource
+// converte entre HabitModel (data layer) e Habit (domain layer)
 class HabitRepositoryImpl implements HabitRepository {
   final HabitLocalSource _habitLocalSource;
 
@@ -34,9 +32,7 @@ class HabitRepositoryImpl implements HabitRepository {
     await _habitLocalSource.deleteHabit(id);
   }
 
-  // converte uma entidade Habit para o modelo de dados HabitModel
-  // transforma a lista de dias (List<int>) em string "0,1,3"
-  // e o DateTime em string ISO
+  // weekdays List<int> → "0,1,3" e DateTime → ISO string para salvar no banco
   HabitModel _habitToModel(Habit habit) {
     return HabitModel(
       id: habit.id,
@@ -48,9 +44,7 @@ class HabitRepositoryImpl implements HabitRepository {
     );
   }
 
-  // converte um modelo de dados HabitModel para a entidade Habit
-  // transforma a string de dias "0,1,3" em lista [0, 1, 3]
-  // e a string ISO em DateTime
+  // "0,1,3" → List<int> e ISO string → DateTime ao sair do banco
   Habit _modelToHabit(HabitModel model) {
     final weekdaysList = model.weekdays.isEmpty
         ? <int>[]

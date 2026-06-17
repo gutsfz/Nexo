@@ -80,7 +80,6 @@ class _AddHabitScreenState extends ConsumerState<AddHabitScreen> {
       final repository = ref.read(habitRepositoryProvider);
       await repository.addHabit(habit);
 
-      // recarrega a lista de hábitos da home
       ref.invalidate(habitsProvider);
 
       if (mounted) context.pop();
@@ -105,7 +104,6 @@ class _AddHabitScreenState extends ConsumerState<AddHabitScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // nome do hábito
             const Text('Nome do hábito',
                 style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
@@ -129,7 +127,6 @@ class _AddHabitScreenState extends ConsumerState<AddHabitScreen> {
             ),
             const SizedBox(height: 24),
 
-            // emoji
             const Text('Emoji', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Wrap(
@@ -161,7 +158,6 @@ class _AddHabitScreenState extends ConsumerState<AddHabitScreen> {
             ),
             const SizedBox(height: 24),
 
-            // categoria
             const Text('Categoria',
                 style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
@@ -177,7 +173,6 @@ class _AddHabitScreenState extends ConsumerState<AddHabitScreen> {
             ),
             const SizedBox(height: 24),
 
-            // repetição semanal
             const Text('Repetição semanal',
                 style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
@@ -231,7 +226,6 @@ class _AddHabitScreenState extends ConsumerState<AddHabitScreen> {
               ),
             const SizedBox(height: 32),
 
-            // botões
             Row(
               children: [
                 Expanded(

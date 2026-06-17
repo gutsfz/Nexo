@@ -7,7 +7,6 @@ import 'package:nexo/data/models/quote_model.dart';
 class QuoteLocalSource {
   Future<Database> get _db async => await DatabaseHelper.instance.database;
 
-  // salva a citação do dia (substitui a anterior)
   Future<void> cacheQuote(QuoteModel quote) async {
     final db = await _db;
     await db.delete('cached_quotes'); // limpa cache antigo
@@ -18,7 +17,6 @@ class QuoteLocalSource {
     });
   }
 
-  // busca a última citação salva (de qualquer data)
   Future<QuoteModel?> getCachedQuote() async {
     final db = await _db;
     final maps = await db.query('cached_quotes', limit: 1);
@@ -30,7 +28,6 @@ class QuoteLocalSource {
     );
   }
 
-  // busca a citação cacheada apenas se foi salva HOJE
   // retorna null se não há cache ou se o cache é de outro dia
   Future<QuoteModel?> getCachedQuoteIfFromToday() async {
     final db = await _db;

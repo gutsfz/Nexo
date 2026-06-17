@@ -21,12 +21,15 @@ class DatabaseHelper {
       path,
       version: 1,
       onCreate: _createDB,
-      onOpen: (db) => db.execute('PRAGMA foreign_keys = ON'),
+      onOpen: (db) async {
+        await db.execute('PRAGMA foreign_keys = ON');
+        await db.execute('PRAGMA secure_delete = ON');
+        await db.execute('PRAGMA journal_mode = WAL');
+      },
     );
   }
 
   Future _createDB(Database db, int version) async {
-    // tabela principal de hábitos
     await db.execute('''
       CREATE TABLE habits (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

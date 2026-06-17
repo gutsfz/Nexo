@@ -227,7 +227,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // saudação + data
                           Padding(
                             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                             child: Container(
@@ -260,7 +259,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                           ),
 
-                          // citação do dia
                           quoteAsync.when(
                             loading: () => const Padding(
                               padding: EdgeInsets.symmetric(
@@ -299,13 +297,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                           ),
 
-                          // progresso do dia
                           ProgressBarCard(
                             completed: completedCount,
                             total: todayHabits.length,
                           ),
 
-                          // label da seção + botão "Ver todos"
                           Padding(
                             padding:
                                 const EdgeInsets.fromLTRB(16, 16, 8, 8),
@@ -328,21 +324,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                           ),
 
-                          // estado vazio
                           if (todayHabits.isEmpty)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 32),
-                              child: Center(
-                                child: Text(
-                                  'Nenhum hábito para hoje.\nToque em + para criar um novo hábito.',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: colorScheme.onSurface
-                                        .withValues(alpha: 0.6),
-                                  ),
-                                ),
-                              ),
+                            _EmptyState(
+                              onCreateHabit: () =>
+                                  context.pushNamed(AppRoutes.addHabit),
                             ),
                         ],
                       ),
@@ -419,6 +404,87 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             },
           );
         },
+      ),
+    );
+  }
+}
+
+class _EmptyState extends StatefulWidget {
+  final VoidCallback onCreateHabit;
+
+  const _EmptyState({required this.onCreateHabit});
+
+  @override
+  State<_EmptyState> createState() => _EmptyStateState();
+}
+
+class _EmptyStateState extends State<_EmptyState>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+
+    return FadeTransition(
+      opacity: _fade,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+        child: Column(
+          children: [
+            Image.asset('assets/images/icon.png', width: 120, height: 120),
+            const SizedBox(height: 24),
+            Text(
+              'Nenhum hábito para hoje',
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Que tal criar seu primeiro hábito e começar sua jornada?',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: onSurface.withValues(alpha: 0.6),
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: widget.onCreateHabit,
+              icon: const Icon(Icons.add),
+              label: const Text('Criar hábito'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7C3AED),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

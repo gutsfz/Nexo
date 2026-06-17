@@ -44,7 +44,6 @@ class HabitDetailScreen extends ConsumerWidget {
     return (completedCount / scheduledCount * 100).round();
   }
 
-  // total de dias desde a criação do hábito (inclusive hoje)
   int _totalDays(Habit habit) {
     final today = DateTime.now();
     final createdAt = DateTime(
@@ -53,7 +52,6 @@ class HabitDetailScreen extends ConsumerWidget {
     return todayDate.difference(createdAt).inDays + 1;
   }
 
-  // streak — dias consecutivos agendados e concluídos, terminando hoje ou ontem
   int _calculateStreak(Habit habit, List<Completion> completions) {
     final habitCompletions =
         completions.where((c) => c.habitId == habit.id).toList();
@@ -79,7 +77,6 @@ class HabitDetailScreen extends ConsumerWidget {
     return streak;
   }
 
-  // status dos 7 dias da semana atual (seg a dom)
   List<bool> _weekStatus(Habit habit, List<Completion> completions) {
     final habitCompletions =
         completions.where((c) => c.habitId == habit.id).toList();
@@ -145,7 +142,6 @@ class HabitDetailScreen extends ConsumerWidget {
               return ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  // emoji e nome
                   Center(
                     child: Column(
                       children: [
@@ -162,7 +158,6 @@ class HabitDetailScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // estatísticas: streak, taxa de conclusão, dias totais
                   Row(
                     children: [
                       _StatBox(
@@ -189,7 +184,6 @@ class HabitDetailScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // dias da semana agendados
                   const Text('DIAS DA SEMANA',
                       style:
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
@@ -227,7 +221,6 @@ class HabitDetailScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // heatmap — 5 semanas em grade calendário
                   const Text('ÚLTIMAS 5 SEMANAS',
                       style:
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
@@ -235,7 +228,6 @@ class HabitDetailScreen extends ConsumerWidget {
                   _HeatmapGrid(data: heatmap),
                   const SizedBox(height: 32),
 
-                  // botões de ação
                   Row(
                     children: [
                       Expanded(
@@ -301,7 +293,6 @@ class HabitDetailScreen extends ConsumerWidget {
   }
 }
 
-// card pequeno para mostrar uma estatística
 class _StatBox extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
@@ -343,7 +334,6 @@ class _StatBox extends StatelessWidget {
   }
 }
 
-// grade 5 semanas × 7 dias (col-major: data[col*7+row], row 0=Seg … 6=Dom)
 class _HeatmapGrid extends StatelessWidget {
   final List<(DateTime, int)> data;
 
@@ -388,7 +378,6 @@ class _HeatmapGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // linha de meses
         Row(
           children: [
             const SizedBox(width: labelW + gap),
@@ -411,7 +400,6 @@ class _HeatmapGrid extends StatelessWidget {
         ),
         const SizedBox(height: 6),
 
-        // linhas de dias da semana
         ...List.generate(7, (row) => Padding(
           padding: EdgeInsets.only(bottom: row < 6 ? gap : 0),
           child: Row(
@@ -454,7 +442,6 @@ class _HeatmapGrid extends StatelessWidget {
 
         const SizedBox(height: 10),
 
-        // legenda
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [

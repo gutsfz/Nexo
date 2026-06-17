@@ -72,14 +72,12 @@ class _HabitCardState extends State<HabitCard>
         clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
-            // left accent border
             Positioned(
               left: 0,
               top: 0,
               bottom: 0,
               child: Container(width: 4, color: primaryColor),
             ),
-            // content with background tint when completed
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               color: widget.isCompleted

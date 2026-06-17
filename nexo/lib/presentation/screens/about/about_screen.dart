@@ -25,7 +25,7 @@ class AboutScreen extends StatelessWidget {
                         .headlineMedium
                         ?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text('Versão 1.0.0',
+                Text('Versão 1.0.1',
                     style: TextStyle(
                         color: onSurface.withValues(alpha: 0.5),
                         fontSize: 13)),

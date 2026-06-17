@@ -10,7 +10,6 @@ class Completion {
     required this.completedAt,
   });
 
-// verifica se a conclusão foi feita no mesmo dia que a data fornecida
   bool isSameDay(DateTime date) {
     return completedAt.year == date.year &&
         completedAt.month == date.month &&

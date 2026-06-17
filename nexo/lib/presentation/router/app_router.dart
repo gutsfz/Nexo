@@ -11,6 +11,7 @@ import 'package:nexo/presentation/screens/settings/settings_screen.dart';
 import 'package:nexo/presentation/screens/about/about_screen.dart';
 import 'package:nexo/presentation/screens/all_habits/all_habits_screen.dart';
 import 'package:nexo/presentation/screens/splash/splash_screen.dart';
+import 'package:nexo/presentation/screens/privacy/privacy_screen.dart';
 
 // rotas nomeadas - facilita navegar sem decorar paths
 class AppRoutes {
@@ -23,6 +24,7 @@ class AppRoutes {
   static const settings = 'settings';
   static const about = 'about';
   static const allHabits = 'all-habits';
+  static const privacy = 'privacy';
 }
 
 Page<void> _fadeSlide(GoRouterState state, Widget child) {
@@ -58,7 +60,6 @@ final appRouter = GoRouter(
       pageBuilder: (context, state) =>
           _fadeSlide(state, const AddHabitScreen()),
     ),
-    // parâmetro de rota: /habit/:id
     GoRoute(
       path: '/habit/:id',
       name: AppRoutes.habitDetail,
@@ -120,6 +121,12 @@ final appRouter = GoRouter(
       name: AppRoutes.allHabits,
       pageBuilder: (context, state) =>
           _fadeSlide(state, const AllHabitsScreen()),
+    ),
+    GoRoute(
+      path: '/privacy',
+      name: AppRoutes.privacy,
+      pageBuilder: (context, state) =>
+          _fadeSlide(state, const PrivacyScreen()),
     ),
   ],
 );
