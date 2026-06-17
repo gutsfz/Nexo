@@ -1,15 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:nexo/core/database/database_helper.dart';
+import 'package:nexo/presentation/providers/completion_providers.dart';
+import 'package:nexo/presentation/providers/habit_providers.dart';
 import 'package:nexo/presentation/providers/theme_provider.dart';
 import 'package:nexo/presentation/router/app_router.dart';
-import 'package:go_router/go_router.dart';
 
-// tela de configurações com opção de tema escuro e informações sobre o app
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  Future<void> _clearAllData() async {
+    await DatabaseHelper.instance.clearAllData();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    if (!mounted) return;
+    ref.invalidate(habitsProvider);
+    ref.invalidate(completionsProvider);
+    context.goNamed(AppRoutes.home);
+  }
+
+  void _showClearDataDialog() {
+    showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Limpar todos os dados'),
+        content: const Text(
+          'Isso vai apagar todos os hábitos, histórico e configurações. '
+          'Esta ação não pode ser desfeita.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Limpar tudo'),
+          ),
+        ],
+      ),
+    ).then((confirmed) {
+      if (confirmed == true) _clearAllData();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
     final isDark = themeMode == ThemeMode.dark;
 
@@ -45,6 +89,20 @@ class SettingsScreen extends ConsumerWidget {
             title: const Text('Sobre o App'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.pushNamed(AppRoutes.about),
+          ),
+          const Divider(),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text('DADOS',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+          ),
+          ListTile(
+            leading: const Icon(Icons.delete_forever, color: Colors.red),
+            title: const Text(
+              'Limpar todos os dados',
+              style: TextStyle(color: Colors.red),
+            ),
+            onTap: _showClearDataDialog,
           ),
         ],
       ),

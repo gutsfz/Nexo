@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:nexo/data/models/quote_model.dart';
 import 'package:nexo/data/sources/quote_local_source.dart';
 import 'package:nexo/data/sources/quote_remote_source.dart';
@@ -33,40 +32,26 @@ class QuoteRepositoryImpl implements QuoteRepository {
     return _fetchAndCache();
   }
 
+  static const _fallbackQuote = Quote(
+    content: 'Cada dia é uma nova oportunidade de melhorar seus hábitos.',
+    author: 'Nexo',
+  );
+
   // busca uma nova citação da api e salva no cache
-  // se falhar por conexão, cai para qualquer citação cacheada (mesmo antiga)
+  // se falhar por qualquer motivo, cai para cache; sem cache, retorna fallback
   Future<Quote> _fetchAndCache() async {
     try {
-      final model = await _quoteRemoteSource.getRandomQuote();
+      final model = await _quoteRemoteSource.getRandomQuote()
+          .timeout(const Duration(seconds: 5));
       await _quoteLocalSource.cacheQuote(model);
       return _modelToQuote(model);
-    } on DioException catch (e) {
-      if (_isConnectionError(e)) {
-        final cachedModel = await _quoteLocalSource.getCachedQuote();
-        if (cachedModel != null) {
-          return _modelToQuote(cachedModel);
-        }
+    } catch (_) {
+      final cachedModel = await _quoteLocalSource.getCachedQuote();
+      if (cachedModel != null) {
+        return _modelToQuote(cachedModel);
       }
-      rethrow;
+      return _fallbackQuote;
     }
-  }
-
-  // verifica se o erro é de conexão/indisponibilidade (sem internet, timeout, rate limit, etc)
-  bool _isConnectionError(DioException exception) {
-    if (exception.type == DioExceptionType.connectionTimeout ||
-        exception.type == DioExceptionType.receiveTimeout ||
-        exception.type == DioExceptionType.sendTimeout ||
-        exception.type == DioExceptionType.unknown) {
-      return true;
-    }
-
-    // 429 = rate limit (muitas requisições); 5xx = erro do servidor
-    if (exception.type == DioExceptionType.badResponse) {
-      final statusCode = exception.response?.statusCode;
-      return statusCode == 429 || (statusCode != null && statusCode >= 500);
-    }
-
-    return false;
   }
 
   // converte um modelo de dados QuoteModel para a entidade Quote

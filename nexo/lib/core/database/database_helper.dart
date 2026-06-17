@@ -60,6 +60,13 @@ class DatabaseHelper {
     ''');
   }
 
+  Future<void> clearAllData() async {
+    final db = await database;
+    await db.delete('completions');
+    await db.delete('cached_quotes');
+    await db.delete('habits');
+  }
+
   Future close() async {
     final db = await instance.database;
     db.close();

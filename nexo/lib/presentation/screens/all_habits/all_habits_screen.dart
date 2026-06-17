@@ -93,6 +93,14 @@ class _AllHabitsScreenState extends ConsumerState<AllHabitsScreen> {
           return ReorderableListView.builder(
             buildDefaultDragHandles: false,
             padding: const EdgeInsets.only(top: 8, bottom: 88),
+            proxyDecorator: (child, index, animation) {
+              return Material(
+                elevation: 6,
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+                child: child,
+              );
+            },
             onReorder: (oldIndex, newIndex) =>
                 _onReorder(oldIndex, newIndex, sorted),
             itemCount: sorted.length,

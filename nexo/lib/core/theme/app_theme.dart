@@ -28,7 +28,7 @@ class GradientBackground extends StatelessWidget {
 
 // cores do app
 const primaryColor = Color(0xFF7C3AED); // roxo nexo
-const darkBackground = Color(0xFF0D0D0D);
+const darkBackground = Color(0xFF0A0A14);
 const darkSurface = Color(0xFF1A1A1A);
 const darkCard = Color(0xFF242424);
 

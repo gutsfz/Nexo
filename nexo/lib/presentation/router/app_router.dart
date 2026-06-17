@@ -9,6 +9,7 @@ import 'package:nexo/presentation/screens/habit_detail/habit_detail_screen.dart'
 import 'package:nexo/presentation/screens/history/history_screen.dart';
 import 'package:nexo/presentation/screens/settings/settings_screen.dart';
 import 'package:nexo/presentation/screens/about/about_screen.dart';
+import 'package:nexo/presentation/screens/all_habits/all_habits_screen.dart';
 import 'package:nexo/presentation/screens/splash/splash_screen.dart';
 
 // rotas nomeadas - facilita navegar sem decorar paths
@@ -28,17 +29,11 @@ Page<void> _fadeSlide(GoRouterState state, Widget child) {
   return CustomTransitionPage<void>(
     key: state.pageKey,
     child: child,
-    transitionDuration: const Duration(milliseconds: 250),
+    transitionDuration: const Duration(milliseconds: 200),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final curved =
-          CurvedAnimation(parent: animation, curve: Curves.easeInOut);
-      final slide = Tween<Offset>(
-        begin: const Offset(0, 0.05),
-        end: Offset.zero,
-      ).animate(curved);
       return FadeTransition(
-        opacity: curved,
-        child: SlideTransition(position: slide, child: child),
+        opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+        child: child,
       );
     },
   );
@@ -118,7 +113,13 @@ final appRouter = GoRouter(
       path: '/about',
       name: AppRoutes.about,
       pageBuilder: (context, state) =>
-      _fadeSlide(state, const AboutScreen()),
-    ), // GoRoute
+          _fadeSlide(state, const AboutScreen()),
+    ),
+    GoRoute(
+      path: '/all-habits',
+      name: AppRoutes.allHabits,
+      pageBuilder: (context, state) =>
+          _fadeSlide(state, const AllHabitsScreen()),
+    ),
   ],
 );

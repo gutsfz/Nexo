@@ -3,7 +3,7 @@ class Quote {
   final String content;
   final String author;
 
-  Quote({
+  const Quote({
     required this.content,
     required this.author,
   });

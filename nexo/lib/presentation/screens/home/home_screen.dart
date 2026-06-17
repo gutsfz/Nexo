@@ -205,168 +205,214 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     .any((c) => c.habitId == h.id && c.isSameDay(now));
               }).length;
 
+              // pre-compute to avoid redundant work inside itemBuilder
+              final streaks = {
+                for (final h in todayHabits)
+                  h.id: _calculateStreak(h, completions),
+              };
+              final weekStatuses = {
+                for (final h in todayHabits)
+                  h.id: _weekStatus(h, completions),
+              };
+
               return RefreshIndicator(
                 onRefresh: () async {
                   ref.invalidate(habitsProvider);
                   ref.invalidate(completionsProvider);
                 },
-                child: ReorderableListView(
-                  buildDefaultDragHandles: false,
-                  padding: const EdgeInsets.only(bottom: 88),
-                  header: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // saudação + data
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _greeting(),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              _formattedDate(),
-                              style: TextStyle(
-                                color: colorScheme.onSurface
-                                    .withValues(alpha: 0.55),
-                                fontSize: 14,
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // saudação + data
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: primaryColor.withValues(alpha: 0.07),
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // citação do dia
-                      quoteAsync.when(
-                        loading: () => const Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 6),
-                          child: Card(
-                            child: Padding(
-                              padding: EdgeInsets.all(16),
-                              child: SizedBox(
-                                height: 60,
-                                child: Center(
-                                    child: CircularProgressIndicator()),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _greeting(),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _formattedDate(),
+                                    style: TextStyle(
+                                      color: colorScheme.onSurface
+                                          .withValues(alpha: 0.55),
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                        ),
-                        error: (_, _) => const SizedBox.shrink(),
-                        data: (quote) => QuoteCard(
-                          content: quote.content,
-                          author: quote.author,
-                          onRefresh: () async {
-                            final repo = ref.read(quoteRepositoryProvider);
-                            await repo.refreshQuote();
-                            ref.invalidate(dailyQuoteProvider);
-                          },
-                        ),
-                      ),
 
-                      // progresso do dia
-                      ProgressBarCard(
-                        completed: completedCount,
-                        total: todayHabits.length,
-                      ),
-
-                      // label da seção + botão "Ver todos"
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
-                        child: Row(
-                          children: [
-                            const Expanded(
-                              child: Text(
-                                'HÁBITOS DE HOJE',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13),
+                          // citação do dia
+                          quoteAsync.when(
+                            loading: () => const Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 6),
+                              child: Card(
+                                child: Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: SizedBox(
+                                    height: 60,
+                                    child: Center(
+                                        child: CircularProgressIndicator()),
+                                  ),
+                                ),
                               ),
                             ),
-                            TextButton(
-                              onPressed: () =>
-                                  context.pushNamed(AppRoutes.allHabits),
-                              child: const Text('Ver todos'),
+                            error: (_, _) => QuoteCard(
+                              content:
+                                  'Cada dia é uma nova oportunidade de melhorar seus hábitos.',
+                              author: 'Nexo',
+                              onRefresh: () async {
+                                final repo =
+                                    ref.read(quoteRepositoryProvider);
+                                await repo.refreshQuote();
+                                ref.invalidate(dailyQuoteProvider);
+                              },
                             ),
-                          ],
-                        ),
-                      ),
-
-                      // estado vazio
-                      if (todayHabits.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 32),
-                          child: Center(
-                            child: Text(
-                              'Nenhum hábito para hoje.\nToque em + para criar um novo hábito.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: colorScheme.onSurface
-                                    .withValues(alpha: 0.6),
-                              ),
+                            data: (quote) => QuoteCard(
+                              content: quote.content,
+                              author: quote.author,
+                              onRefresh: () async {
+                                final repo =
+                                    ref.read(quoteRepositoryProvider);
+                                await repo.refreshQuote();
+                                ref.invalidate(dailyQuoteProvider);
+                              },
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                  onReorder: (oldIndex, newIndex) =>
-                      _onReorder(oldIndex, newIndex, todayHabits, allHabits),
-                  children: [
-                    for (int i = 0; i < todayHabits.length; i++)
-                      HabitCard(
-                        key: ValueKey(todayHabits[i].id),
-                        emoji: todayHabits[i].emoji,
-                        name: todayHabits[i].name,
-                        category: todayHabits[i].category,
-                        streak:
-                            _calculateStreak(todayHabits[i], completions),
-                        isCompleted: completions.any((c) =>
-                            c.habitId == todayHabits[i].id &&
-                            c.isSameDay(now)),
-                        weekStatus:
-                            _weekStatus(todayHabits[i], completions),
-                        dragHandle: ReorderableDragStartListener(
-                          index: i,
-                          child: Padding(
+
+                          // progresso do dia
+                          ProgressBarCard(
+                            completed: completedCount,
+                            total: todayHabits.length,
+                          ),
+
+                          // label da seção + botão "Ver todos"
+                          Padding(
                             padding:
-                                const EdgeInsets.symmetric(horizontal: 4),
-                            child: Icon(
-                              Icons.drag_handle,
-                              color: colorScheme.onSurface
-                                  .withValues(alpha: 0.4),
-                              size: 20,
+                                const EdgeInsets.fromLTRB(16, 16, 8, 8),
+                            child: Row(
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'HÁBITOS DE HOJE',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () => context
+                                      .pushNamed(AppRoutes.allHabits),
+                                  child: const Text('Ver todos'),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                        onToggle: () async {
-                          final repo =
-                              ref.read(completionRepositoryProvider);
-                          final done = completions.any((c) =>
-                              c.habitId == todayHabits[i].id &&
-                              c.isSameDay(now));
-                          if (done) {
-                            await repo.unmarkCompleted(
-                                todayHabits[i].id, now);
-                          } else {
-                            await repo.markCompleted(
-                                todayHabits[i].id, now);
-                          }
-                          ref.invalidate(completionsProvider);
-                        },
-                        onTap: () => context.pushNamed(
-                          AppRoutes.habitDetail,
-                          pathParameters: {
-                            'id': todayHabits[i].id.toString()
-                          },
-                        ),
+
+                          // estado vazio
+                          if (todayHabits.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 32),
+                              child: Center(
+                                child: Text(
+                                  'Nenhum hábito para hoje.\nToque em + para criar um novo hábito.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: colorScheme.onSurface
+                                        .withValues(alpha: 0.6),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.only(bottom: 88),
+                      sliver: SliverReorderableList(
+                        itemCount: todayHabits.length,
+                        onReorder: (oldIndex, newIndex) => _onReorder(
+                            oldIndex, newIndex, todayHabits, allHabits),
+                        proxyDecorator: (child, index, animation) {
+                          return Material(
+                            elevation: 6,
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                            child: child,
+                          );
+                        },
+                        itemBuilder: (context, i) {
+                          return Material(
+                            key: ValueKey(todayHabits[i].id),
+                            color: Colors.transparent,
+                            child: HabitCard(
+                              emoji: todayHabits[i].emoji,
+                              name: todayHabits[i].name,
+                              category: todayHabits[i].category,
+                              streak: streaks[todayHabits[i].id]!,
+                              isCompleted: completions.any((c) =>
+                                  c.habitId == todayHabits[i].id &&
+                                  c.isSameDay(now)),
+                              weekStatus: weekStatuses[todayHabits[i].id]!,
+                              dragHandle: ReorderableDragStartListener(
+                                index: i,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 4),
+                                  child: Icon(
+                                    Icons.drag_handle,
+                                    color: colorScheme.onSurface
+                                        .withValues(alpha: 0.4),
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                              onToggle: () async {
+                                final repo =
+                                    ref.read(completionRepositoryProvider);
+                                final done = completions.any((c) =>
+                                    c.habitId == todayHabits[i].id &&
+                                    c.isSameDay(now));
+                                if (done) {
+                                  await repo.unmarkCompleted(
+                                      todayHabits[i].id, now);
+                                } else {
+                                  await repo.markCompleted(
+                                      todayHabits[i].id, now);
+                                }
+                                ref.invalidate(completionsProvider);
+                              },
+                              onTap: () => context.pushNamed(
+                                AppRoutes.habitDetail,
+                                pathParameters: {
+                                  'id': todayHabits[i].id.toString(),
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                   ],
                 ),
               );

@@ -17,7 +17,7 @@ class AboutScreen extends StatelessWidget {
           Center(
             child: Column(
               children: [
-                const Text('🔗', style: TextStyle(fontSize: 64)),
+                Image.asset('assets/images/icon.png', width: 100, height: 100),
                 const SizedBox(height: 12),
                 Text('Nexo',
                     style: Theme.of(context)
