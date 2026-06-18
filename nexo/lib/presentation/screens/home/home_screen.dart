@@ -188,7 +188,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         onPressed: () => context.pushNamed(AppRoutes.addHabit),
         child: const Icon(Icons.add),
       ),
-      body: habitsAsync.when(
+      body: SafeArea(child: habitsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Erro: $error')),
         data: (allHabits) {
@@ -404,7 +404,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             },
           );
         },
-      ),
+      )),
     );
   }
 }

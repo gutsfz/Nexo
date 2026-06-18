@@ -20,12 +20,10 @@ class DatabaseHelper {
     return await openDatabase(
       path,
       version: 1,
-      onCreate: _createDB,
-      onOpen: (db) async {
+      onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
-        await db.execute('PRAGMA secure_delete = ON');
-        await db.execute('PRAGMA journal_mode = WAL');
       },
+      onCreate: _createDB,
     );
   }
 

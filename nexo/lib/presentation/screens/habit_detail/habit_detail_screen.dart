@@ -450,6 +450,12 @@ class _HeatmapGrid extends StatelessWidget {
             _LegendItem(color: onSurface.withValues(alpha: 0.15), label: 'Pendente'),
             const SizedBox(width: 10),
             _LegendItem(color: primaryColor, label: 'Feito'),
+            const SizedBox(width: 10),
+            _LegendItem(
+              color: Colors.transparent,
+              label: 'Hoje',
+              border: Border.all(color: primaryColor, width: 1.5),
+            ),
           ],
         ),
       ],
@@ -460,8 +466,9 @@ class _HeatmapGrid extends StatelessWidget {
 class _LegendItem extends StatelessWidget {
   final Color color;
   final String label;
+  final BoxBorder? border;
 
-  const _LegendItem({required this.color, required this.label});
+  const _LegendItem({required this.color, required this.label, this.border});
 
   @override
   Widget build(BuildContext context) {
@@ -475,6 +482,7 @@ class _LegendItem extends StatelessWidget {
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(3),
+            border: border,
           ),
         ),
         const SizedBox(width: 4),

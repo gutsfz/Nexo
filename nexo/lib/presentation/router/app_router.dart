@@ -33,9 +33,17 @@ Page<void> _fadeSlide(GoRouterState state, Widget child) {
     child: child,
     transitionDuration: const Duration(milliseconds: 200),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return FadeTransition(
-        opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
-        child: child,
+      return Stack(
+        children: [
+          Container(color: Theme.of(context).scaffoldBackgroundColor),
+          FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOut,
+            ),
+            child: child,
+          ),
+        ],
       );
     },
   );
