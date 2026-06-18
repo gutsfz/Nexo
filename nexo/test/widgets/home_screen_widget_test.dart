@@ -59,9 +59,17 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Act & Assert - verifica se o botão de adicionar está presente
-      expect(find.byIcon(Icons.add), findsOneWidget);
+      // Act & Assert - verifica se o FAB está presente e contém Icons.add
+      // (Icons.add também aparece no botão do estado vazio, por isso buscamos
+      // dentro do FloatingActionButton especificamente)
       expect(find.byType(FloatingActionButton), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(FloatingActionButton),
+          matching: find.byIcon(Icons.add),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets(
@@ -91,6 +99,29 @@ void main() {
 
       // Assert - verifica se o RefreshIndicator está presente para pull-to-refresh
       expect(find.byType(RefreshIndicator), findsOneWidget);
+    });
+
+    testWidgets('HomeScreen body está envolto em SafeArea',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            habitsProvider.overrideWith((_) async => []),
+            completionsProvider.overrideWith((_) async => []),
+            dailyQuoteProvider.overrideWith((_) async => Quote(
+              content: 'Teste de citação',
+              author: 'Autor de Teste',
+            )),
+          ],
+          child: const MaterialApp(
+            home: HomeScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SafeArea), findsWidgets);
     });
   });
 }

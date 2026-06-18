@@ -9,6 +9,7 @@ import 'package:nexo/presentation/providers/completion_providers.dart';
 import 'package:nexo/presentation/providers/habit_providers.dart';
 import 'package:nexo/presentation/providers/quote_providers.dart';
 import 'package:nexo/presentation/providers/repository_providers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Repositório fake para evitar acesso ao SQLite nos testes de integração
 class _FakeHabitRepository implements HabitRepository {
@@ -22,8 +23,10 @@ class _FakeHabitRepository implements HabitRepository {
   Future<void> deleteHabit(int id) async {}
 }
 
-/// Monta o NexoApp com providers mockados e avança além do timer da SplashScreen (2500ms).
+/// Monta o NexoApp com providers mockados e avança além do timer da SplashScreen (3000ms).
 Future<void> _pumpApp(WidgetTester tester) async {
+  SharedPreferences.setMockInitialValues({});
+
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -39,8 +42,8 @@ Future<void> _pumpApp(WidgetTester tester) async {
     ),
   );
 
-  // Avança além do Future.delayed(2500ms) da SplashScreen
-  await tester.pump(const Duration(milliseconds: 2600));
+  // Avança além do Future.delayed(3000ms) da SplashScreen
+  await tester.pump(const Duration(milliseconds: 3100));
   await tester.pumpAndSettle();
 }
 
@@ -76,10 +79,10 @@ void main() {
 
       // Verifica que estamos na HomeScreen
       expect(find.byType(FloatingActionButton), findsOneWidget);
-      expect(find.byIcon(Icons.add), findsOneWidget);
 
-      // Navega para AddHabitScreen tocando no FAB
-      await tester.tap(find.byIcon(Icons.add));
+      // Navega para AddHabitScreen tocando no FAB diretamente
+      // (Icons.add também aparece no botão do estado vazio)
+      await tester.tap(find.byType(FloatingActionButton));
       await tester.pumpAndSettle();
 
       // Confirma que chegou na tela de formulário

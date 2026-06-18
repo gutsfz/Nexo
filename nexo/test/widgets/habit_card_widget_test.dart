@@ -135,15 +135,16 @@ void main() {
       // Estado inicial: não concluído — ícone de check não deve existir
       expect(find.byIcon(Icons.check), findsNothing);
 
-      // AnimatedContainer é o círculo de toggle — único no HabitCard
-      await tester.tap(find.byType(AnimatedContainer));
+      // HabitCard tem 2 AnimatedContainers: fundo do card e círculo de toggle.
+      // O círculo de toggle é o último na árvore.
+      await tester.tap(find.byType(AnimatedContainer).last);
       await tester.pumpAndSettle();
 
       // Após toggle: ícone de check deve aparecer
       expect(find.byIcon(Icons.check), findsOneWidget);
 
       // Toggle novamente: volta ao estado não concluído
-      await tester.tap(find.byType(AnimatedContainer));
+      await tester.tap(find.byType(AnimatedContainer).last);
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.check), findsNothing);
