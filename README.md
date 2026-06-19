@@ -9,7 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Windows-4A2A8A)]()
 
-**[🇧🇷 Português](#-sobre-o-projeto)** • **[🇺🇸 English](#-about-the-project-1)**
+**[🇧🇷 Português](#-sobre-o-projeto)** • **[🇺🇸 English](#-about-the-project)**
 
 </div>
 
